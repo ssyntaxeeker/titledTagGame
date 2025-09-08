@@ -1,11 +1,14 @@
 {
-  "name": "Scaffold",
+  "name": "Titled Tag Game",
   "tree": {
     "$className": "DataModel",
 
     "ReplicatedStorage": {
       "Packages": {
         "$path": "Packages"
+      },
+      "Vendor": {
+        "$path": "Vendor"
       },
       "Modules": {
         "$path": "src/client"
