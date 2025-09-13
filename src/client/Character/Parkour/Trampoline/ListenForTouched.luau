@@ -3,8 +3,10 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local CameraShake = require(ReplicatedStorage.Modules.Camera.CameraShake)
 local Net = require(ReplicatedStorage.Packages.Net)
 local PlaySound = require(ReplicatedStorage.Modules.FX.PlaySound)
+local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInterface)
 local Slide = require(ReplicatedStorage.Modules.Character.Parkour.Landing.Slide)
 
 local PlaySoundRE = Net:RemoteEvent("PlaySound")
@@ -22,7 +24,7 @@ local function handleBounce(tramp)
 	local bounceAmount = tramp:GetAttribute("BounceAmount") / 1.2
 
 	if character:GetAttribute("Sliding") == true then
-		bounceAmount *= 1.5
+		--bounceAmount *= 1.5
 		Slide.Stop()
 	end
 
@@ -33,7 +35,7 @@ local function handleBounce(tramp)
 
 	PlaySoundRE:FireServer("Trampoline", rootPart)
 	PlaySound("Trampoline", rootPart)
-	-- SHAKE
+	if SettingsInterface.gameplay.cameraShake == true then CameraShake.new():Shake(0.3, bounceAmount / 60, 0.6) end
 end
 
 local function getTrampolineBelow(character)

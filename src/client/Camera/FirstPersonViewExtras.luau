@@ -5,6 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local CameraModule = require(ReplicatedStorage.Modules.Camera.CameraModule)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
+local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInterface)
 
 local localPlayer = Players.LocalPlayer
 
@@ -16,12 +17,16 @@ local renderStepped
 local function FirstPerson(character)
 	for _, part in character:GetDescendants() do
 		if not part:IsA("BasePart") then continue end
+
+		local highlight = part:FindFirstChild("NTBBreakHighlight")
+		if highlight then highlight.Visible = false end
+
 		if not table.find(viewableParts, part.Name) then
 			part.LocalTransparencyModifier = 1
 			continue
 		end
 
-		part.LocalTransparencyModifier = 0
+		part.LocalTransparencyModifier = SettingsInterface.display.firstPersonTransparency
 	end
 end
 
@@ -30,6 +35,9 @@ local function ThirdPerson(character)
 		if not part:IsA("BasePart") or part.Name == "HumanoidRootPart" then continue end
 
 		part.LocalTransparencyModifier = 0
+
+		local highlight = part:FindFirstChild("NTBBreakHighlight")
+		if highlight then highlight.Visible = true end
 	end
 end
 
@@ -52,7 +60,7 @@ local function initCharacter(character)
 	setMouseIcon()
 	setCanCollide(character)
 
-	character.Humanoid.Died:Connect(function()
+	character:WaitForChild("Humanoid").Died:Connect(function()
 		if not renderStepped then return end
 		renderStepped:Disconnect()
 		renderStepped = nil
@@ -68,8 +76,9 @@ local function initCharacter(character)
 end
 
 local function handleConnections()
-	if localPlayer.Character then initCharacter(localPlayer.Character) end
 	localPlayer.CharacterAdded:Connect(initCharacter)
+
+	if localPlayer.Character then initCharacter(localPlayer.Character) end
 end
 
 return Schedules["Boot"].job(handleConnections)

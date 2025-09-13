@@ -16,17 +16,16 @@ end
 local function adjustJumpPower(character, dt)
 	local humanoid = character.Humanoid
 
-	local currentPower = humanoid.JumpPower
-
 	local minJumpPower = character:GetAttribute("MinJumpPower") or 16
 	local maxJumpPower = character:GetAttribute("MaxJumpPower") or 28
 	local accelerationRate = character:GetAttribute("AccelerationRate") or 16
 	local decelerationRate = character:GetAttribute("DecelerationRate") or 2
 
-	local jumpPowerBoost = math.max(currentPower / maxJumpPower, 1)
+	local currentPower = humanoid.JumpPower
 	local targetPower = if isRunning() then maxJumpPower else minJumpPower
-	targetPower *= jumpPowerBoost
 	local rate = if currentPower < targetPower then accelerationRate else decelerationRate
+
+	if character:GetAttribute("Sliding") == true then return end
 
 	if humanoid.MoveDirection.Magnitude == 0 then
 		humanoid.JumpPower = minJumpPower
@@ -38,7 +37,7 @@ end
 local function initCharacter(character)
 	if renderStepped then renderStepped:Disconnect() end
 
-	character.Humanoid.Died:Connect(function()
+	character:WaitForChild("Humanoid").Died:Connect(function()
 		if not renderStepped then return end
 
 		renderStepped:Disconnect()
@@ -51,9 +50,9 @@ local function initCharacter(character)
 end
 
 local function handleConnections()
-	if localPlayer.Character then initCharacter(localPlayer.Character) end
-
 	localPlayer.CharacterAdded:Connect(initCharacter)
+
+	if localPlayer.Character then initCharacter(localPlayer.Character) end
 end
 
 return Schedules["Boot"].job(handleConnections)

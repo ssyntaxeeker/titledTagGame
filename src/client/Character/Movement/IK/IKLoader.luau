@@ -13,17 +13,16 @@ local function OnCharacterAdded(Character: Model)
 		CharacterTable[Character.Name].LegController = IKModule.new(Character, {
 			ikEnabled = true,
 			ikExclude = {},
-			maxIkVelocity = 1.5,
-
+			maxIkVelocity = 1.8,
 			onStates = {
 				Enum.HumanoidStateType.Running,
 			},
 			activationVelocity = 1.5,
-			maxRootAngle = 22,
-			maxAngle = 25,
+			maxRootAngle = 24,
+			maxAngle = 32,
 			interploationSpeed = {
-				highVelocityPoint = 2.5,
-				Speed = 0.1,
+				highVelocityPoint = 1.5,
+				Speed = 0.07,
 			},
 		})
 	end)

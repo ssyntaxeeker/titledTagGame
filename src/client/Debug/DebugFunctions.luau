@@ -3,11 +3,18 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
+local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInterface)
+
 local Assets = ReplicatedStorage.Assets
+
 local localPlayer = Players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
 
 local DebugUI = Assets.UI.DebugUI:Clone()
-DebugUI.Parent = localPlayer:WaitForChild("PlayerGui")
+DebugUI.Parent = playerGui
+
+local SpeedDisplayUI = Assets.UI.SpeedDisplayUI:Clone()
+SpeedDisplayUI.Parent = playerGui
 
 local DebugFunctions = {}
 local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
@@ -22,6 +29,8 @@ local function fadeAndDestroy(label, delayTime)
 end
 
 function DebugFunctions.Print(message, color)
+	if SettingsInterface.debug.showValues == false then return end
+
 	local printList = DebugUI.PrintList
 	local newPrint = printList.Template:Clone()
 
@@ -35,7 +44,7 @@ function DebugFunctions.Print(message, color)
 
 	newPrint.Parent = printList
 
-	for _, child in ipairs(printList:GetChildren()) do
+	for _, child in printList:GetChildren() do
 		if child:IsA("TextLabel") and child ~= newPrint and child.Name ~= "Template" then fadeAndDestroy(child, 0.5) end
 	end
 
@@ -44,21 +53,57 @@ function DebugFunctions.Print(message, color)
 	end)
 end
 
+function DebugFunctions.VisualizeRaycast(origin, direction, color)
+	if SettingsInterface.debug.showRaycasts == false then return end
+
+	local rayLength = direction.Magnitude
+
+	local rayPart = Instance.new("Part")
+	rayPart.Anchored = true
+	rayPart.CanCollide = false
+	rayPart.CanQuery = false
+	rayPart.Size = Vector3.new(0.02, 0.02, rayLength)
+	rayPart.Color = color or Color3.fromRGB(128, 0, 128)
+	rayPart.Material = Enum.Material.Neon
+	rayPart.CFrame = CFrame.new(origin, origin + direction) * CFrame.new(0, 0, -rayLength / 2)
+	rayPart.Parent = workspace.Debug
+
+	game:GetService("Debris"):AddItem(rayPart, 3)
+end
+
+local currentFps = 0
+local lastFpsUpdate = os.clock()
+
 function DebugFunctions.Update()
 	local character = localPlayer.Character
 	if not character then return end
 
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	local rootPart = character:FindFirstChild("HumanoidRootPart")
+
 	if not humanoid or not rootPart then return end
 
-	local fps = math.floor(1 / RunService.RenderStepped:Wait())
-	local walkSpeed, jumpPower, velocity = humanoid.WalkSpeed, humanoid.JumpPower, rootPart.Velocity
+	local walkSpeed = humanoid.WalkSpeed
+
+	SpeedDisplayUI.Speed.Text = math.floor(walkSpeed)
+
+	if SettingsInterface.debug.showDebug == false then
+		DebugUI.DebugLabel.Text = ""
+		return
+	end
+
+	local jumpPower, velocity = humanoid.JumpPower, rootPart.Velocity
+
+	if os.clock() - lastFpsUpdate > 0.5 then
+		currentFps = math.floor(1 / RunService.RenderStepped:Wait())
+		lastFpsUpdate = os.clock()
+	end
+
 	local momentum = math.clamp(walkSpeed - (character:GetAttribute("MaxRunSpeed") or walkSpeed), 0, 100)
 
 	DebugUI.DebugLabel.Text = string.format(
 		"debug:\nFPS: %d\nWalkSpeed: %.2f\nJumpPower: %.2f\nVelocity: %.2f\nFalling speed: %.2f\nMomentum: %.2f",
-		fps,
+		currentFps,
 		walkSpeed,
 		jumpPower,
 		velocity.Magnitude,

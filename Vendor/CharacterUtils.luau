@@ -5,6 +5,7 @@ function CharacterUtils.RemoveExtraAccessories(character)
 	if character:FindFirstChild("Pants") then character.Pants:Destroy() end
 
 	for _, accessory in character:GetChildren() do
+		if accessory:IsA("CharacterMesh") then accessory:Destroy() end
 		if not accessory:IsA("Accessory") then continue end
 
 		local accessoryType = accessory.AccessoryType

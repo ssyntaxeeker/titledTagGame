@@ -12,7 +12,14 @@ local lastStepSound = 1
 
 local function step(character)
 	if not character:FindFirstChild("HumanoidRootPart") then return end
-	if character:GetAttribute("Sliding") then return end
+	if
+		character:GetAttribute("Sliding")
+		or character:GetAttribute("Vaulting")
+		or character:GetAttribute("Swinging")
+		or character:GetAttribute("Rolling")
+	then
+		return
+	end
 
 	local humanoid = character.Humanoid
 	local humanoidRootPart = character.HumanoidRootPart

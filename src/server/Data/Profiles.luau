@@ -5,9 +5,34 @@ local module = {}
 local Profiles = {}
 local Proxies = {}
 
-module.PlayerDataTemplate = {}
-
-local leaderstatsStats = { "Rank", "Tags" }
+module.PlayerDataTemplate = {
+	Settings = {
+		gameplay = {
+			moveCameraY = true,
+			thirdPersonDistanceX = 0.3,
+			thirdPersonDistanceZ = 0.7,
+			cameraShake = false,
+		},
+		debug = {
+			showValues = true,
+			showRaycasts = false,
+			showDebug = false,
+		},
+		display = {
+			firstPersonTransparency = 0,
+			roleChangeVisuals = 1,
+			disableShadows = false,
+			fov = 1,
+		},
+		audio = {
+			musicVolume = 0.5,
+			parkourVolume = 1,
+			effectsVolume = 0.7,
+			tagVolume = 1,
+			movementVolume = 0.7,
+		},
+	},
+}
 
 function module.Create(profileStore, player)
 	local profile = profileStore:StartSessionAsync(`{player.UserId}`, {
@@ -33,25 +58,9 @@ function module.Create(profileStore, player)
 			local data = profile.Data
 			local mt = {}
 
-			local leaderstats = Instance.new("Folder")
-			leaderstats.Name = "leaderstats"
-			leaderstats.Parent = player
-
 			mt.__newindex = function(_, k, v)
 				data[k] = v
 				player:SetAttribute(k, v)
-
-				if table.find(leaderstatsStats, k) then
-					local numberValue = leaderstats:FindFirstChild(k)
-
-					if not numberValue then
-						numberValue = Instance.new("NumberValue")
-						numberValue.Name = k
-						numberValue.Parent = leaderstats
-					end
-
-					numberValue.Value = v
-				end
 			end
 
 			mt.__index = function(_, k)

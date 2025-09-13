@@ -1,4 +1,3 @@
--- HighlightClient.lua (local script)
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -40,8 +39,9 @@ local function characterListen(character)
 end
 
 local function initPlayer(player)
-	if player.Character then characterListen(player.Character) end
 	player.CharacterAdded:Connect(characterListen)
+
+	if player.Character then characterListen(player.Character) end
 end
 
 for _, player in Players:GetPlayers() do

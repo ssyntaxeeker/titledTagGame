@@ -22,9 +22,9 @@ local function highlight(character, color)
 	local Highlight = Instance.new("Highlight")
 	Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	Highlight.FillColor = color
-	Highlight.FillTransparency = 0.6
+	Highlight.FillTransparency = 0.5
 	Highlight.OutlineColor = color
-	Highlight.OutlineTransparency = 0.4
+	Highlight.OutlineTransparency = 0.25
 	Highlight.Parent = character
 
 	characterHighlights[character] = Highlight

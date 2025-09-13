@@ -13,10 +13,8 @@ CameraModule.LockVector = false
 CameraModule.ResetCamera = false
 CameraModule.SaveCameraDirection = false
 
-CameraModule.CameraOffset = Vector3.new(2, 0.5, 5)
-
-local yOffset = CameraModule.CameraOffset * Vector3.yAxis
-local xzOffset = CFrame.new(CameraModule.CameraOffset * (Vector3.xAxis + Vector3.zAxis))
+CameraModule.CameraOffset =
+	Vector3.new(-4 + (8 * SettingsInterface.gameplay.thirdPersonDistanceX), 0.5, 2 + (8 * SettingsInterface.gameplay.thirdPersonDistanceZ))
 
 local camera = workspace.CurrentCamera
 local initCameraCFrame = camera.CFrame
@@ -40,11 +38,20 @@ function CameraModule.SetCharacter(character)
 			humanoid.CameraOffset = Vector3.new(0, 0, -0.3)
 
 			if SettingsInterface.gameplay.moveCameraY == false then
-				camera.CFrame = initCameraCFrame * CFrame.new(0, 0, 0)
+				local startY = rootPart.Position.Y + (rootPart.Size.Y / 2) + (head.Size.Y / 2)
+				local targetY = head.Position.Y
+				local constrainedY = math.clamp(targetY, startY - 0.3, startY + 0.3)
+				local camPos = Vector3.new(camera.CFrame.Position.X, constrainedY, camera.CFrame.Position.Z)
+				camera.CFrame = CFrame.new(camPos, camPos + initCameraCFrame.LookVector)
+				--camera.CFrame = initCameraCFrame * CFrame.new(0, 0, 0)
 			else
-				camera.CFrame = CFrame.new(head.Position, head.Position + initCameraCFrame.LookVector)
+				local headPos = head.Position
+				camera.CFrame = CFrame.new(headPos, headPos + initCameraCFrame.LookVector)
 			end
 		else
+			local yOffset = CameraModule.CameraOffset * Vector3.yAxis
+			local xzOffset = CFrame.new(CameraModule.CameraOffset * (Vector3.xAxis + Vector3.zAxis))
+
 			camera.CFrame = initCameraCFrame * xzOffset
 			humanoid.CameraOffset = yOffset
 		end

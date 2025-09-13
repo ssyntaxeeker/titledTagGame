@@ -3,19 +3,18 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
+local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInterface)
 
 local currentCamera = workspace.CurrentCamera
 local localPlayer = Players.LocalPlayer
 
-local maxRunSpeedFOV = 120
-local minRunSpeedFOV = 110
-local increment = 117
-
 local renderStepped
 
 local function calculateFOV(walkSpeed)
-	local m = (maxRunSpeedFOV - minRunSpeedFOV) / 16
-	local y = m * (walkSpeed - 16) + increment
+	local fov = 50 * SettingsInterface.display.fov + 70
+
+	local m = ((fov + 7) - (fov - 7)) / 16
+	local y = m * (walkSpeed - 16) + (fov + 2)
 	return y
 end
 
@@ -26,13 +25,13 @@ end
 local function initCharacter(character)
 	if renderStepped then renderStepped:Disconnect() end
 
+	local humanoid = character:WaitForChild("Humanoid")
+
 	character.Humanoid.Died:Connect(function()
 		if not renderStepped then return end
 		renderStepped:Disconnect()
 		renderStepped = nil
 	end)
-
-	local humanoid = character.Humanoid
 
 	renderStepped = RunService.RenderStepped:Connect(function(dt)
 		currentCamera.FieldOfView = Lerp(currentCamera.FieldOfView, calculateFOV(humanoid.WalkSpeed), dt)

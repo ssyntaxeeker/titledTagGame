@@ -14,6 +14,7 @@ local KeyboardController = {
 	Enabled = false,
 	ControlPriority = Enum.ContextActionPriority.High.Value,
 	MoveVector = ZERO_VECTOR3,
+	ForceMoveVector = false,
 	IsJumping = false,
 	JumpEnabled = true,
 }
@@ -28,6 +29,8 @@ local inputValues = {
 local jumpRequested = false
 
 local function updateMovement(state)
+	if KeyboardController.ForceMoveVector == true then return end
+
 	if state == Enum.UserInputState.Cancel then
 		KeyboardController.MoveVector = ZERO_VECTOR3
 	else
@@ -103,7 +106,8 @@ end
 
 local function resetInputs()
 	KeyboardController.MoveVector = ZERO_VECTOR3
-	for k in pairs(inputValues) do
+
+	for k in inputValues do
 		inputValues[k] = 0
 	end
 	jumpRequested = false

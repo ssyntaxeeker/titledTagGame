@@ -8,7 +8,7 @@ local localPlayer = Players.LocalPlayer
 local function setupSound(character)
 	local rootPart = character:WaitForChild("HumanoidRootPart")
 
-	rootPart:WaitForChild("Jumping").SoundId = "rbxassetid://138077685335481"
+	rootPart:WaitForChild("Jumping").SoundId = "rbxassetid://121152687916961"
 end
 
 local function init()

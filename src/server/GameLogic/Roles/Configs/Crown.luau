@@ -5,8 +5,11 @@ local RolesFunctions = require(ServerStorage.Modules.GameLogic.Roles.RolesFuncti
 return RolesFunctions.RegisterRole("Crown", function(player)
 	local character = player.Character
 
-	character:SetAttribute("MaxRunSpeed", 32.75)
+	character:SetAttribute("MinRunSpeed", 16)
+	character:SetAttribute("MaxRunSpeed", 32.55)
 
+	character:SetAttribute("MinJumpPower", 16)
+	character:SetAttribute("MaxJumpPower", 28)
 	character:SetAttribute("RollboostJumpPower", 35)
 
 	character:SetAttribute("AccelerationRate", 32)

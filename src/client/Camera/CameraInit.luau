@@ -10,13 +10,21 @@ local function setupCharacter(char)
 	CameraModule.SetCharacter(char)
 end
 
-if localPlayer.Character then setupCharacter(localPlayer.Character) end
 localPlayer.CharacterAdded:Connect(setupCharacter)
+
+if localPlayer.Character then setupCharacter(localPlayer.Character) end
 
 InputsManager.AddInput("ChangeCameraPerspective", {
 	Keys = { Enum.KeyCode.Z, Enum.KeyCode.V },
 	OnBegan = function()
 		CameraModule.FirstPerson = not CameraModule.FirstPerson
+
+		local character = localPlayer.Character
+		if not character then return end
+
+		local overheadUI = character:WaitForChild("Head"):FindFirstChild("PlayerName")
+		if not overheadUI then return end
+		overheadUI.Enabled = not CameraModule.FirstPerson
 	end,
 })
 

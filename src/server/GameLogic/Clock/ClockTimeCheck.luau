@@ -15,7 +15,7 @@ local function initTimer()
 			local modeConfig = require(ReplicatedStorage.Shared.Configs.Modes[gamemode])
 
 			local winningRole = modeConfig.winRole
-			if not winningRole then return end
+			if not winningRole then continue end
 
 			print(winningRole)
 		end

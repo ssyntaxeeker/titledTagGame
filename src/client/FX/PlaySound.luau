@@ -11,9 +11,9 @@ local function playSound(soundName, ...)
 	if soundName == "Vault" then
 		local rootPart, studs = unpack { ... }
 
-		local VaultSound = SoundAssets.Vault:Clone()
+		local VaultSound = (studs < 2.25 and SoundAssets.NormalVault or SoundAssets.HighVault):Clone()
 		VaultSound.Parent = rootPart
-		VaultSound.Effect.Octave = 0.047 * studs + 0.97
+		--VaultSound.Effect.Octave = 0.047 * studs + 0.97
 
 		VaultSound:Play()
 		Debris:AddItem(VaultSound, 0.5)
@@ -32,12 +32,14 @@ local function playSound(soundName, ...)
 
 		local rollSoundName
 
-		if ms > 100 then
+		if ms > 200 then
 			rollSoundName = "FailedRoll"
+		elseif ms > 100 then
+			rollSoundName = "normalroll"
 		elseif ms > 10 then
-			rollSoundName = "GoodRoll"
+			rollSoundName = "quickroll"
 		else
-			rollSoundName = "PerfectRoll"
+			rollSoundName = "perfectroll"
 		end
 
 		local RollSound = SoundAssets[rollSoundName]:Clone()
@@ -80,6 +82,22 @@ local function playSound(soundName, ...)
 	elseif soundName == "RoleChange" then
 		local RoleSound = SoundAssets.RoleChange
 		RoleSound:Play()
+	elseif soundName == "NTBHit" then
+		local rootPart = unpack { ... }
+
+		local TagSound = SoundAssets.NoTagBackHit:Clone()
+		TagSound.Parent = rootPart
+
+		TagSound:Play()
+		Debris:AddItem(TagSound, 1)
+	elseif soundName == "NTBHitBreak" then
+		local rootPart = unpack { ... }
+
+		local TagSound = SoundAssets.NoTagBackBreak:Clone()
+		TagSound.Parent = rootPart
+
+		TagSound:Play()
+		Debris:AddItem(TagSound, 1)
 	end
 end
 

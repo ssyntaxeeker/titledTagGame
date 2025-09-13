@@ -15,6 +15,7 @@ for _, module in ReplicatedStorage.Modules:GetDescendants() do
 
 	if Dev.debugMode == true and RunService:IsStudio() then print("INITIALIZING " .. module.Name) end
 
+	--print(module)
 	require(module)
 end
 

@@ -32,11 +32,14 @@ function Slide.Start()
 
 	local slideEnterAnimation = AnimationManager.GetTrack(humanoid.Animator, Assets.Animations.Parkour.SlideEnter)
 	local slideAnimation = AnimationManager.GetTrack(humanoid.Animator, Assets.Animations.Parkour.SlideIdle)
+	slideEnterAnimation.Priority = Enum.AnimationPriority.Action3
+	slideAnimation.Priority = Enum.AnimationPriority.Action2
 
-	slideEnterAnimation:Play()
-	slideAnimation:Play()
+	slideEnterAnimation:Play(0.1)
+	slideAnimation:Play(0.1)
 
 	character:SetAttribute("Sliding", true)
+	humanoid.JumpPower = 25
 
 	SlideSound:Resume()
 	TweenService:Create(SlideSound, slideTweenInfo, { Volume = 0.3 }):Play()
@@ -54,9 +57,11 @@ function Slide.Stop()
 
 	local slideAnimation = AnimationManager.GetTrack(humanoid.Animator, Assets.Animations.Parkour.SlideIdle)
 
-	slideAnimation:Stop(0.4)
+	slideAnimation:Stop(0.1)
 
 	humanoid.HipHeight = 0
+	humanoid.WalkSpeed = 28
+	humanoid.JumpPower = character:GetAttribute("MaxJumpPower") or 28
 
 	CameraModule.LockVector = false
 

@@ -7,7 +7,6 @@ local DebugConfig = require(ReplicatedStorage.Modules.Debug.DebugConfig)
 local DebugFunctions = require(ReplicatedStorage.Modules.Debug.DebugFunctions)
 local Net = require(ReplicatedStorage.Packages.Net)
 local PlaySound = require(ReplicatedStorage.Modules.FX.PlaySound)
-local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInterface)
 
 local Assets = ReplicatedStorage.Assets
 
@@ -32,6 +31,8 @@ return function(hitResult)
 
 	local swingAnimation = AnimationManager.GetTrack(humanoid.Animator, Assets.Animations.Parkour.Swing)
 
+	character:SetAttribute("Swinging", true)
+
 	task.spawn(function()
 		swingAnimation:Play()
 
@@ -55,16 +56,19 @@ return function(hitResult)
 	bodyPos.Parent = rootPart
 
 	local velocity = rootPart.AssemblyLinearVelocity
-	local swingFactor = (math.clamp(-velocity.Y, 25, 80) / 25) ^ 0.7
+	local swingFactor = (math.clamp(-velocity.Y, 25, 56) / 25) ^ 0.7
 
-	CooldownManager.modifyCooldown(localPlayer, "Swing", true, 0.6)
+	CooldownManager.modifyCooldown(localPlayer, "Swing", true, 0.4)
 
 	task.spawn(function()
-		if SettingsInterface.debug.showValues ~= true then return end
-
-		local swingPrint = string.format("%.2f%% vps", swingFactor * 100)
-		local swingColors = DebugConfig.DEBUG_SWING_COLOR
-		DebugFunctions.Print(swingPrint, Color3.fromHSV(swingColors[1] + (swingFactor - 1 + 0.001) / 1.8 / 2, swingColors[2], swingColors[3]))
+		DebugFunctions.Print(
+			string.format("%.2f%% vps", swingFactor * 100),
+			Color3.fromHSV(
+				DebugConfig.DEBUG_SWING_COLOR[1],
+				DebugConfig.DEBUG_SWING_COLOR[2] + (swingFactor - 1 + 0.001) / 1.8 / 2,
+				DebugConfig.DEBUG_SWING_COLOR[3]
+			)
+		)
 	end)
 
 	local elapsed = 0
@@ -83,6 +87,8 @@ return function(hitResult)
 	end
 
 	rootPart.AssemblyLinearVelocity += moveDir * (swingFactor * 50)
+
+	character:SetAttribute("Swinging", nil)
 
 	swingPart.CanCollide = originalCollide
 	if swingPart.Parent:GetAttribute("SwingBar") then swingPart.Parent.CanCollide = originalCollide end

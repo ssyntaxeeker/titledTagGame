@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local AnimationManager = require(ReplicatedStorage.Modules.Animations.AnimationManager)
+local CameraShake = require(ReplicatedStorage.Modules.Camera.CameraShake)
 local CooldownManager = require(ReplicatedStorage.Vendor.CooldownManager)
 local DebugConfig = require(ReplicatedStorage.Modules.Debug.DebugConfig)
 local DebugFunctions = require(ReplicatedStorage.Modules.Debug.DebugFunctions)
@@ -29,10 +30,11 @@ local function roll(character, ms)
 	CooldownManager.modifyCooldown(localPlayer, "Roll", true, 0.05)
 
 	local humanoid = character.Humanoid
-	local walkSpeed = 40 + 17 * math.exp(-0.0225 * ms)
+	local walkSpeed = math.clamp(-0.1344 * ms + 55.378, 39, 56)
 
 	if not character:GetAttribute("Rolling") then previousWalkSpeed = humanoid.WalkSpeed end
 
+	RollInterface.lastPressed = nil
 	rollIndex += 1
 	humanoid.WalkSpeed = walkSpeed
 
@@ -40,6 +42,7 @@ local function roll(character, ms)
 	local currentRollIndex = rollIndex
 
 	local rollboostTiming = math.clamp(1.3 + ((0.1 - ms / 1000) * 3.5) ^ 0.85 / (ms > 100 and 1 or 1.4), 0.5, 2.5)
+	if typeof(rollboostTiming) ~= "number" then rollboostTiming = 0.05 end
 
 	task.delay(math.clamp(rollboostTiming / 10, 0.05, 1), function()
 		humanoid.JumpPower = character:GetAttribute("RollboostJumpPower") or 33.6
@@ -56,8 +59,6 @@ local function roll(character, ms)
 	local rootPart = character.HumanoidRootPart
 
 	task.spawn(function()
-		if SettingsInterface.debug.showValues ~= true then return end
-
 		DebugFunctions.Print(
 			`{string.format("%.2f", ms)} ms`,
 			(ms < 8 and "Rainbow") or (ms < 100 and DebugConfig.DEBUG_PERFECT_ROLL_COLOR) or DebugConfig.DEBUG_NORMAL_ROLL_COLOR
@@ -74,8 +75,10 @@ end
 local function setupConnections(character)
 	if humanoidConnection then humanoidConnection:Disconnect() end
 
-	humanoidConnection = character.Humanoid:GetPropertyChangedSignal("FloorMaterial"):Connect(function()
-		local newMaterial = character.Humanoid.FloorMaterial
+	local humanoid = character:WaitForChild("Humanoid")
+
+	humanoidConnection = humanoid:GetPropertyChangedSignal("FloorMaterial"):Connect(function()
+		local newMaterial = humanoid.FloorMaterial
 		local rootPart = character.HumanoidRootPart
 
 		if previousMaterial == Enum.Material.Air and newMaterial ~= Enum.Material.Air and not character:GetAttribute("Sliding") then
@@ -90,7 +93,7 @@ local function setupConnections(character)
 			else
 				PlaySound("Land", rootPart, ALVelocityY)
 				PlaySoundRE:FireServer("Land", rootPart, ALVelocityY)
-				-- SHAKE
+				if SettingsInterface.gameplay.cameraShake == true then CameraShake.new():Shake(0.07, ALVelocityY / 40, 0.7) end
 			end
 		end
 	end)
@@ -98,9 +101,9 @@ end
 
 local function initListening()
 	local character = localPlayer.Character
-	if character then setupConnections(character) end
 
 	localPlayer.CharacterAdded:Connect(setupConnections)
+	if character then setupConnections(character) end
 end
 
 return Schedules.Boot.job(initListening)

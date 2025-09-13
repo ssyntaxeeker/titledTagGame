@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local AnimationAssets = ReplicatedStorage.Assets.Animations
-local AnimationManager = require(script.Parent.AnimationManager)
+local AnimationManager = require(ReplicatedStorage.Modules.Animations.AnimationManager)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 
 local localPlayer = Players.LocalPlayer
@@ -52,11 +52,9 @@ local function updateAnimations(character)
 
 	local humanoid = character.Humanoid
 
-	local maxRunSpeed = character:GetAttribute("MaxRunSpeed") or 32
-
 	local movementDirZ = rootPart.CFrame:VectorToObjectSpace(rootPart.AssemblyLinearVelocity).Z / humanoid.WalkSpeed
 
-	local speed = (0.2 + (1 - 0.2) * (math.clamp((humanoid.WalkSpeed - 16) / (maxRunSpeed - 16), 0, 1) ^ 1.5)) * ((movementDirZ > 0.1) and -1 or 1)
+	local speed = (1.1 * (humanoid.WalkSpeed / 32) * ((movementDirZ > 0.1) and -1 or 1))
 	local state = getCharacterState(humanoid)
 
 	animations.Walk:AdjustSpeed(math.clamp(speed * 3.2, -0.9, 0.9))
@@ -72,12 +70,18 @@ local function updateAnimations(character)
 		if currentState then
 			local prevAnim = animations[currentState]
 			stopAnimation(prevAnim, 0.1)
+			character:SetAttribute("AnimationPaused", nil)
+
+			if not string.find(state, "Crouch") and (currentState == "CrouchWalk" or currentState == "CrouchIdle") then
+				stopAnimation(animations.Crouch, 0.1)
+			end
 		end
 
 		if state == "Run" then
 			playAnimation(animations.Run, 0.4)
 		elseif state == "CrouchWalk" then
-			playAnimation(animations.CrouchWalk, 0.4)
+			playAnimation(animations.Crouch, 0.2)
+			animations.Crouch:AdjustSpeed(0.8)
 		elseif state == "Walk" then
 			playAnimation(animations.Walk, 0.2)
 		elseif state == "Climb" then
@@ -89,9 +93,11 @@ local function updateAnimations(character)
 			if rootPart.AssemblyLinearVelocity.Y > 0.1 then playAnimation(animations[`Jump{jumpCount}`]) end
 			playAnimation(animations.Fall, 0.1)
 		elseif state == "CrouchIdle" then
-			playAnimation(animations.CrouchIdle, 0.1)
+			playAnimation(animations.Crouch, 0.2)
+			animations.Crouch:AdjustSpeed(0)
 		elseif state == "Idle" then
 			playAnimation(animations.Idle, 0.1)
+			character:SetAttribute("AnimationPaused", true)
 		end
 
 		currentState = state
@@ -102,19 +108,16 @@ local function initCharacter(character)
 	if renderStepped then renderStepped:Disconnect() end
 	currentState = nil
 
-	local humanoid = character.Humanoid
+	local humanoid = character:WaitForChild("Humanoid")
 
 	animations.Walk = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Walk)
-	animations.CrouchWalk = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.CrouchWalk)
 	animations.Run = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Run)
 	animations.Jump1 = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Jump1)
 	animations.Jump2 = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Jump2)
 	animations.Climb = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Climbing)
 	animations.Fall = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Fall)
 	animations.Idle = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Idle)
-	animations.CrouchIdle = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.CrouchIdle)
-
-	animations.Vault = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Parkour.Vault)
+	animations.Crouch = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Crouch)
 
 	humanoid.Died:Connect(function()
 		if renderStepped then
@@ -131,8 +134,9 @@ local function initCharacter(character)
 end
 
 local function handleConnections()
-	if localPlayer.Character then initCharacter(localPlayer.Character) end
 	localPlayer.CharacterAdded:Connect(initCharacter)
+
+	if localPlayer.Character then initCharacter(localPlayer.Character) end
 end
 
 return Schedules.Boot.job(handleConnections)

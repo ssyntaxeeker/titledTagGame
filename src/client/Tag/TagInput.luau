@@ -1,4 +1,3 @@
-local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -6,6 +5,7 @@ local AnimationManager = require(ReplicatedStorage.Modules.Animations.AnimationM
 local CharacterUtils = require(ReplicatedStorage.Vendor.CharacterUtils)
 local CooldownManager = require(ReplicatedStorage.Vendor.CooldownManager)
 local CrosshairFunctions = require(ReplicatedStorage.Modules.Cursor.CrosshairFunctions)
+local DebugFunctions = require(ReplicatedStorage.Modules.Debug.DebugFunctions)
 local InputsManager = require(ReplicatedStorage.Modules.Inputs.InputsManager)
 local Net = require(ReplicatedStorage.Packages.Net)
 local PlaySound = require(ReplicatedStorage.Modules.FX.PlaySound)
@@ -16,34 +16,6 @@ local localPlayer = Players.LocalPlayer
 local TagRE = Net:RemoteEvent("Tag")
 local PlaySoundRE = Net:RemoteEvent("PlaySound")
 local tagIndex = 1
-
-local function visualizeRay(origin, direction, hitPosition)
-	local endPos = hitPosition or (origin + direction)
-
-	local linePart = Instance.new("Part")
-	linePart.Anchored = true
-	linePart.CanCollide = false
-	linePart.CanQuery = false
-	linePart.Material = Enum.Material.Neon
-	linePart.Color = Color3.fromRGB(255, 0, 0)
-	linePart.Size = Vector3.new(0.02, 0.02, (endPos - origin).Magnitude)
-	linePart.CFrame = CFrame.new(origin + (endPos - origin) / 2, endPos)
-	linePart.Parent = workspace.Debug
-	Debris:AddItem(linePart, 4)
-
-	if hitPosition then
-		local hitBall = Instance.new("Part")
-		hitBall.Shape = Enum.PartType.Ball
-		hitBall.Size = Vector3.new(0.3, 0.3, 0.3)
-		hitBall.Color = Color3.fromRGB(0, 255, 0)
-		hitBall.Anchored = true
-		hitBall.CanCollide = false
-		hitBall.CanQuery = false
-		hitBall.Position = hitPosition
-		hitBall.Parent = workspace.Debug
-		Debris:AddItem(hitBall, 4)
-	end
-end
 
 InputsManager.AddInput("Tag", {
 	Keys = { Enum.UserInputType.MouseButton1 },
@@ -63,6 +35,8 @@ InputsManager.AddInput("Tag", {
 			tagIndex += 1
 
 			local tagAnimation = AnimationManager.GetTrack(character.Humanoid.Animator, Assets.Animations.Player[`Tag{tagIndex}`])
+			tagAnimation.Priority = Enum.AnimationPriority.Action3
+
 			tagAnimation:Play()
 			tagAnimation:AdjustSpeed(1 / tagCooldown)
 
@@ -84,12 +58,15 @@ InputsManager.AddInput("Tag", {
 
 		for _, ePlayer in Players:GetPlayers() do
 			if ePlayer == localPlayer then continue end
+
 			local eCharacter = ePlayer.Character
 			if eCharacter then table.insert(characters, eCharacter) end
 		end
 
+		table.insert(characters, workspace.Bots)
+
 		local rayParams = RaycastParams.new()
-		rayParams.FilterDescendantsInstances = { unpack(characters), workspace.Bots }
+		rayParams.FilterDescendantsInstances = characters
 		rayParams.FilterType = Enum.RaycastFilterType.Include
 
 		for i = 1, rayNumber do
@@ -100,7 +77,7 @@ InputsManager.AddInput("Tag", {
 
 			local raycastResult = workspace:Raycast(origin, direction, rayParams)
 			task.spawn(function()
-				visualizeRay(origin, direction, raycastResult and raycastResult.Position)
+				DebugFunctions.VisualizeRaycast(origin, direction, Color3.fromRGB(255, 39, 39))
 			end)
 
 			if raycastResult then

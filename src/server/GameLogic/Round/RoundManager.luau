@@ -6,6 +6,7 @@ local RoundManager = {}
 
 function RoundManager.SetMode(mode)
 	local modeFunction = ModesList.GetMode(mode)
+
 	if not modeFunction then
 		warn(`Couldn't set {mode}: Gamemode is not registered`)
 		return

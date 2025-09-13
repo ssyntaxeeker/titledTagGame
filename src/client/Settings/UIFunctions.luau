@@ -28,6 +28,7 @@ function UIFunctions.ChangeTab(newTabName)
 	end
 
 	Main.Frames[newTabName].Visible = true
+	Main.CurrentTab.Text = newTabName:lower()
 end
 
 function UIFunctions.IsOpen()

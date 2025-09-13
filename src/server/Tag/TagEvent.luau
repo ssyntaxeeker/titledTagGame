@@ -1,16 +1,18 @@
-local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
 local CharacterUtils = require(ReplicatedStorage.Vendor.CharacterUtils)
+local NTB = require(ServerStorage.Modules.Tag.NTB)
 local Net = require(ReplicatedStorage.Packages.Net)
+local Profiles = require(ServerStorage.Modules.Data.Profiles)
 local RolesFunctions = require(ServerStorage.Modules.GameLogic.Roles.RolesFunctions)
 
 local RoleConfigsStorage = ReplicatedStorage.Shared.Configs.Roles
 
 local TagRE = Net:RemoteEvent("Tag")
 local PlaySoundRE = Net:RemoteEvent("PlaySound")
+local ApplyKnockbackRE = Net:RemoteEvent("ApplyKnockback")
 
 TagRE.OnServerEvent:Connect(function(player, target)
 	local character = player.Character
@@ -20,41 +22,33 @@ TagRE.OnServerEvent:Connect(function(player, target)
 	if not rootPart then return end
 	if not target or not target:IsA("Instance") then return end
 
-	if (rootPart.Position - target.Position).Magnitude > 20 then return end
+	if (rootPart.Position - target.Position).Magnitude > 25 then return end
 
 	local targetHumanoid = CharacterUtils.CheckIfInstanceIsPartOfCharacter(target)
 	if targetHumanoid then
-		if workspace:GetAttribute("TimeLeft") == 0 then return end
-
 		local targetCharacter = targetHumanoid.Parent
 		local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
 		if not targetRootPart then return end
+		if targetHumanoid.Health <= 0 then return end
 
-		local direction = (targetRootPart.Position - rootPart.Position).Unit
-		local attackerVelocity = rootPart.AssemblyLinearVelocity.Magnitude
-		local speedFactor = math.clamp(attackerVelocity / 32, 0, 3)
-
-		local baseForward = 48
-		local knockbackMultiplier = character:GetAttribute("KnockbackMultiplier")
-		local forwardImpulse = direction * (baseForward + speedFactor * 20) * (knockbackMultiplier or 1)
-		local upImpulse = Vector3.new(0, 11 + speedFactor * 5, 0) * ((knockbackMultiplier and knockbackMultiplier / 2) or 0.5)
-
-		local randomSide = rootPart.CFrame.RightVector * (math.random() - 0.5) * 15
-		local finalVelocity = forwardImpulse + upImpulse + randomSide
-
-		local bodyVelocity = Instance.new("BodyVelocity")
-		bodyVelocity.Velocity = finalVelocity
-		bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-		bodyVelocity.P = 1e4
-		bodyVelocity.Parent = targetRootPart
-		Debris:AddItem(bodyVelocity, 0.07)
-
-		PlaySoundRE:FireAllClients("Hit", targetRootPart)
+		local durability = targetCharacter:GetAttribute("NTBDurability")
 
 		local targetPlayer = Players:GetPlayerFromCharacter(targetCharacter)
+
 		if targetPlayer then
+			if not durability or durability == 0 then
+				PlaySoundRE:FireAllClients("Hit", targetRootPart)
+				ApplyKnockbackRE:FireClient(targetPlayer, character)
+			else
+				PlaySoundRE:FireAllClients("NTBHit", targetRootPart)
+				ApplyKnockbackRE:FireClient(targetPlayer, character, "NTB")
+			end
+
+			if workspace:GetAttribute("TimeLeft") == 0 then return end
+
 			local modeConfig = ReplicatedStorage.Shared.Configs.Modes:FindFirstChild(workspace:GetAttribute("Gamemode"))
 			if not modeConfig then return end
+
 			modeConfig = require(modeConfig)
 			if not modeConfig.allowTagging then return end
 
@@ -62,8 +56,21 @@ TagRE.OnServerEvent:Connect(function(player, target)
 			local playerRoleConfig = require(RoleConfigsStorage[playerRole])
 
 			if playerRoleConfig.canTagRoles and table.find(playerRoleConfig.canTagRoles, targetPlayerRole) then
+				if durability ~= 0 and durability ~= nil then
+					NTB.Hit(targetPlayer)
+
+					if durability - 1 == 0 then PlaySoundRE:FireAllClients("NTBHitBreak", targetRootPart) end
+					return
+				end
+
+				local playerProxy = Profiles.ReturnProxy(player)
+				playerProxy.Tags += 1
+
 				RolesFunctions.ChangeRole(player, playerRoleConfig.onTagBecomes)
 				RolesFunctions.ChangeRole(targetPlayer, playerRoleConfig.onTagGives)
+
+				NTB.Hit(player)
+				NTB.Hit(targetPlayer)
 			end
 		end
 	end

@@ -1,92 +1,52 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
-local TweenService = game:GetService("TweenService")
 
 local LeaderboardFunctions = require(script.Parent.LeaderboardFunctions)
+local Schedules = require(ReplicatedStorage.Shared.Schedules)
 
 local _, _, ScrollFrame = LeaderboardFunctions.GetUI()
 local UIListLayout = ScrollFrame:WaitForChild("UIListLayout")
 local PlayerTemplate = UIListLayout:WaitForChild("PlayerTemplate")
 local RoleTemplate = UIListLayout:WaitForChild("RoleTemplate")
 
-local TweenInfoHover = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-
 local playerRows = {}
-local playerConnections = {}
 local roleHeaders = {}
-local roleOrderMap = {}
-local nextRoleBase = 1
-
-local function safeTween(target, info, props)
-	local ok, t = pcall(function()
-		return TweenService:Create(target, info, props)
-	end)
-	if not ok or not t then return end
-	t:Play()
-	return t
-end
 
 local function lerpColor(a, b, t)
 	return Color3.new(a.R + (b.R - a.R) * t, a.G + (b.G - a.G) * t, a.B + (b.B - a.B) * t)
 end
 
-local function formatTagsNumber(n)
-	n = math.floor(n or 0)
-	local s = tostring(n)
-	while #s < 4 do
-		s = "0" .. s
-	end
-	return s
-end
-
-local function getRoleNameForSubject(subject)
-	local character
-	if subject:IsA("Player") then
-		character = subject.Character
-	else
-		character = subject
-	end
-	if not character then return nil end
-	local roleName = character:GetAttribute("Role")
-	if not roleName or roleName == "" then return nil end
-	return roleName
-end
-
 local function getRoleConfig(roleName)
-	if not roleName then return nil end
-	local rolesFolder = ReplicatedStorage:FindFirstChild("Shared")
-		and ReplicatedStorage.Shared:FindFirstChild("Configs")
-		and ReplicatedStorage.Shared.Configs:FindFirstChild("Roles")
-	if not rolesFolder then return nil end
+	local rolesFolder = ReplicatedStorage.Shared.Configs.Roles
+
 	local moduleObj = rolesFolder:FindFirstChild(roleName)
 	if not moduleObj then return nil end
+
 	local ok, config = pcall(require, moduleObj)
 	if not ok or type(config) ~= "table" then return nil end
+
 	return config
 end
 
-local function ensureRoleHeader(roleName)
-	if not roleName then return nil end
-	if roleHeaders[roleName] then return roleHeaders[roleName] end
+local function ensureRoleHeader(roleName, playerCount)
+	if roleHeaders[roleName] then
+		local header = roleHeaders[roleName]
+		header.gamemodename.Text = string.format("%s - %d", roleName:upper(), playerCount)
+		return header
+	end
 
 	local header = RoleTemplate:Clone()
 	header.Name = "Role_" .. roleName
 	header.Visible = true
 	header.Parent = ScrollFrame
 
-	local base = roleOrderMap[roleName] or nextRoleBase
-	if not roleOrderMap[roleName] then
-		roleOrderMap[roleName] = base
-		nextRoleBase = nextRoleBase + 1000
-	end
-
-	header.LayoutOrder = roleOrderMap[roleName]
 	local config = getRoleConfig(roleName)
 	local roleColor = (config and config.Color) or Color3.new(1, 1, 1)
 	local light1 = lerpColor(roleColor, Color3.new(1, 1, 1), 0.15)
 	local light2 = lerpColor(roleColor, Color3.new(1, 1, 1), 0.3)
 	local light3 = lerpColor(roleColor, Color3.new(1, 1, 1), 0.85)
+
 	if header:FindFirstChild("UIGradient") then
 		header.UIGradient.Color = ColorSequence.new {
 			ColorSequenceKeypoint.new(0, roleColor),
@@ -95,269 +55,138 @@ local function ensureRoleHeader(roleName)
 			ColorSequenceKeypoint.new(1, light3),
 		}
 	end
-	local label = header:FindFirstChild("gamemodename")
-	local text = roleName .. "s"
 
-	if config ~= nil and typeof(config.Plural) == "string" then text = config.Plural end
-	if label then label.Text = text end
+	if header:FindFirstChild("gamemodename") then header.gamemodename.Text = string.format("%s - %d", roleName:upper(), playerCount) end
+
 	roleHeaders[roleName] = header
-	return header
-end
-
-local function removeRoleHeaderIfEmpty(roleName)
-	if not roleName or not roleHeaders[roleName] then return end
-	for _, row in pairs(playerRows) do
-		local rrole = getRoleNameForSubject(row._subject)
-		if rrole == roleName then return end
-	end
-	roleHeaders[roleName]:Destroy()
-	roleHeaders[roleName] = nil
-end
-
-local function applyHover(row, hover)
-	if not row then return end
-	if hover then
-		safeTween(row.NameFrame.displayname, TweenInfoHover, { TextTransparency = 1 })
-		if row.NameFrame.displayname:FindFirstChild("UIStroke") then
-			safeTween(row.NameFrame.displayname.UIStroke, TweenInfoHover, { Transparency = 1 })
-		end
-		safeTween(row.NameFrame.level, TweenInfoHover, { TextTransparency = 1 })
-	else
-		safeTween(row.NameFrame.displayname, TweenInfoHover, { TextTransparency = 0 })
-		if row.NameFrame.displayname:FindFirstChild("UIStroke") then
-			safeTween(row.NameFrame.displayname.UIStroke, TweenInfoHover, { Transparency = 0 })
-		end
-		safeTween(row.NameFrame.level, TweenInfoHover, { TextTransparency = 0 })
-	end
-end
-
-local function createRow(subject)
-	local row = PlayerTemplate:Clone()
-	row.Visible = false
-	row.Name = "Player_" .. (subject.Name or "Unknown")
-	row.Parent = ScrollFrame
-
-	playerRows[subject] = row
-	if row.NameFrame and row.NameFrame.displayname then
-		row.NameFrame.displayname.MouseEnter:Connect(function()
-			applyHover(row, true)
-		end)
-		row.NameFrame.displayname.MouseLeave:Connect(function()
-			applyHover(row, false)
-		end)
-	end
-	return row
-end
-
-local function setPlayerThumbnail(row, subject)
-	if not subject or not subject:IsA("Player") then return end
-	local userId = subject.UserId
-	local thumbType = Enum.ThumbnailType.HeadShot
-	local thumbSize = Enum.ThumbnailSize.Size48x48
-	local ok, content = pcall(function()
-		return Players:GetUserThumbnailAsync(userId, thumbType, thumbSize)
-	end)
-	if ok and content then
-		if row.playericon and row.playericon:IsA("ImageLabel") then row.playericon.Image = content end
-	end
+	return header, roleColor
 end
 
 local function pickBadgeImage(subject)
-	local img
-	local inGroup = subject.GetAttribute and subject:GetAttribute("InGroup")
+	if subject:GetAttribute("Dev") then return "rbxassetid://12318465145" end
+	if subject:GetAttribute("Mod") or subject:GetAttribute("Admin") then return "rbxassetid://18759169432" end
+	if subject:GetAttribute("VIP") then return "rbxassetid://18772350480" end
 
-	if inGroup and type(inGroup) == "number" and inGroup > 1 then img = "rbxassetid://18759179531" end
-	if subject.GetAttribute and subject:GetAttribute("VIP") then img = "rbxassetid://18772350480" end
-	if subject.GetAttribute and (subject:GetAttribute("Mod") or subject:GetAttribute("Admin")) then img = "rbxassetid://18759169432" end
-	if subject.GetAttribute and subject:GetAttribute("Dev") then img = "rbxassetid://12318465145" end
+	local inGroup = subject:GetAttribute("InGroup")
 
-	return img
+	if typeof(inGroup) == "number" and inGroup > 1 then return "rbxassetid://18759179531" end
+
+	return nil
 end
 
-local function ensureAllRows()
-	for _, player in Players:GetPlayers() do
-		if not playerRows[player] and player.Character then createRow(player) end
-	end
-end
-
-local function recomputeAllRoles()
-	ensureAllRows()
-
-	local roleGroups = {}
-
-	for player, row in playerRows do
-		local char = player.Character
-		local role = (char and char:GetAttribute("Role"))
-		if not role then continue end
-
-		if not roleGroups[role] then roleGroups[role] = {} end
-		table.insert(roleGroups[role], row)
-	end
-
-	for roleName, header in roleHeaders do
-		if not roleGroups[roleName] or #roleGroups[roleName] == 0 then
-			header:Destroy()
-			roleHeaders[roleName] = nil
-		end
-	end
-
-	local layoutOrder = 0
-	for roleName, rows in roleGroups do
-		local header = ensureRoleHeader(roleName)
-		header.gamemodename.Text = (getRoleConfig(roleName).Plural or (roleName .. "s")):upper() .. " - " .. tostring(#rows)
-		roleHeaders[roleName] = header
-		layoutOrder = layoutOrder + 1
-		header.LayoutOrder = layoutOrder
-
-		for _, row in rows do
-			layoutOrder = layoutOrder + 1
-			row.LayoutOrder = layoutOrder
-			row.ImageColor3 = getRoleConfig(roleName).Color or Color3.new(1, 1, 1)
-		end
-	end
+local function createRow(player)
+	if playerRows[player] then return playerRows[player] end
+	local row = PlayerTemplate:Clone()
+	row.Name = "Player_" .. player.Name
+	row.Visible = true
+	row.Parent = ScrollFrame
+	playerRows[player] = row
+	return row
 end
 
 local function updateRow(player)
-	if not playerRows[player] then createRow(player) end
-	local row = playerRows[player]
-	row.Visible = true
+	local row = playerRows[player] or createRow(player)
+	row.NameFrame.displayname.Text = player.DisplayName or player.Name
 
-	if row.Stats and row.Stats.username then row.Stats.username.Text = "@" .. (player.Name or "Unknown") end
+	row.NameFrame.level.Text = "Rank: " .. tostring(player:GetAttribute("Rank") or "?")
+	row.Stats.tags.Text = tostring(player:GetAttribute("Tags") or 0)
 
-	local displayName = player.DisplayName or player.Name or "Unknown"
-	local premium = (player.MembershipType == Enum.MembershipType.Premium) and (utf8.char(57345) .. " ") or ""
-	if row.NameFrame and row.NameFrame.displayname then row.NameFrame.displayname.Text = premium .. displayName end
-
-	local leaderstats = player:FindFirstChild("leaderstats")
-	local rankObj = leaderstats and leaderstats:FindFirstChild("rank")
-	local tagsObj = leaderstats and leaderstats:FindFirstChild("tags")
-
-	if row.NameFrame and row.NameFrame.level then row.NameFrame.level.Text = rankObj and ("rank " .. tostring(rankObj.Value)) or "" end
-
-	if row.Stats and row.Stats.tags then
-		row.Stats.tags.Visible = tagsObj and true or false
-		if tagsObj then row.Stats.tags.Text = formatTagsNumber(tagsObj.Value) end
-	end
+	row.ImageColor3 = getRoleConfig(player.Character and player.Character:GetAttribute("Role") or "Runner").Color
 
 	local badge = pickBadgeImage(player)
-	if row.playericon and row.playericon.icon then
-		row.playericon.icon.Visible = badge ~= nil
-		if badge then row.playericon.icon.Image = badge end
+
+	local playerIcon = row:FindFirstChild("playericon")
+
+	if playerIcon and playerIcon.icon then
+		playerIcon.icon.Visible = badge ~= nil
+		if badge then playerIcon.icon.Image = badge end
 	end
 
-	if row.playericon then setPlayerThumbnail(row, player) end
-
-	recomputeAllRoles()
+	local ok, content = pcall(function()
+		return Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+	end)
+	if ok and content and playerIcon and playerIcon:IsA("ImageLabel") then playerIcon.Image = content end
 end
 
-local function removePlayer(player)
-	if playerRows[player] then
-		playerRows[player]:Destroy()
-		playerRows[player] = nil
+local function rebuildLeaderboard()
+	for _, row in playerRows do
+		if row then row:Destroy() end
 	end
-	if playerConnections[player] then
-		for i = 1, #playerConnections[player] do
-			local c = playerConnections[player][i]
-			if c and c.Disconnect then c:Disconnect() end
-		end
-		playerConnections[player] = nil
+	playerRows = {}
+
+	for _, header in roleHeaders do
+		if header then header:Destroy() end
 	end
-end
+	roleHeaders = {}
 
-local function connect(player)
-	if playerRows[player] then return end
+	local roleGroups = {}
+	for _, player in Players:GetPlayers() do
+		local role = player.Character and player.Character:GetAttribute("Role") or "None"
 
-	local conns = {}
-	playerConnections[player] = conns
+		roleGroups[role] = roleGroups[role] or {}
+		table.insert(roleGroups[role], player)
+	end
 
-	local function bindCharacter(character)
-		if not character then return end
-		updateRow(player)
+	local sortedRoles = {}
+	for roleName, players in roleGroups do
+		table.insert(sortedRoles, { role = roleName, players = players })
+	end
 
-		local roleConn = character:GetAttributeChangedSignal("Role"):Connect(function()
+	table.sort(sortedRoles, function(a, b)
+		return #a.players > #b.players
+	end)
+
+	local layoutOrder = 0
+
+	for _, group in sortedRoles do
+		layoutOrder += 1
+		local roleName = group.role
+		local header, roleColor = ensureRoleHeader(roleName, #group.players)
+		header.LayoutOrder = layoutOrder
+
+		table.sort(group.players, function(a, b)
+			return (a:GetAttribute("Tags") or 0) > (b:GetAttribute("Tags") or 0)
+		end)
+
+		for _, player in group.players do
+			layoutOrder += 1
+			local row = createRow(player)
+			row.LayoutOrder = layoutOrder
 			updateRow(player)
-		end)
-		table.insert(conns, roleConn)
-	end
-
-	table.insert(
-		conns,
-		player.CharacterAdded:Connect(function(char)
-			bindCharacter(char)
-		end)
-	)
-
-	if player.Character then bindCharacter(player.Character) end
-
-	local leaderstats = player:FindFirstChild("leaderstats") or player:WaitForChild("leaderstats", 15)
-	if leaderstats then
-		local rank = leaderstats:FindFirstChild("rank")
-		local tags = leaderstats:FindFirstChild("tags")
-
-		if rank then table.insert(
-			conns,
-			rank.Changed:Connect(function()
-				updateRow(player)
-			end)
-		) end
-
-		if tags then
-			table.insert(
-				conns,
-				tags.Changed:Connect(function()
-					updateRow(player)
-				end)
-			)
-			table.insert(
-				conns,
-				tags:GetAttributeChangedSignal("TagStreak"):Connect(function()
-					updateRow(player)
-				end)
-			)
+			if row:IsA("Frame") then row.ImageColor3 = roleColor end
 		end
 	end
-
-	table.insert(
-		conns,
-		player.AncestryChanged:Connect(function()
-			if not player:IsDescendantOf(workspace) then removePlayer(player) end
-		end)
-	)
-
-	updateRow(player)
 end
 
-local function disconnect(player)
-	if playerConnections[player] then
-		for _, conn in ipairs(playerConnections[player]) do
-			if conn and conn.Disconnect then conn:Disconnect() end
-		end
-		playerConnections[player] = nil
+local function connectCharacter(character)
+	character:GetAttributeChangedSignal("Role"):Connect(rebuildLeaderboard)
+	rebuildLeaderboard()
+end
+
+local function connectPlayer(player)
+	player:GetAttributeChangedSignal("Rank"):Connect(rebuildLeaderboard)
+	player:GetAttributeChangedSignal("Tags"):Connect(rebuildLeaderboard)
+
+	player.CharacterAdded:Connect(connectCharacter)
+
+	local character = player.Character
+	if character then connectCharacter(character) end
+	rebuildLeaderboard()
+end
+
+local function init()
+	Players.PlayerAdded:Connect(connectPlayer)
+	Players.PlayerRemoving:Connect(rebuildLeaderboard)
+
+	for _, player in Players:GetPlayers() do
+		connectPlayer(player)
 	end
-	removePlayer(player)
+	rebuildLeaderboard()
 end
-
-local function updateList()
-	for p, _ in pairs(playerRows) do
-		if not p or (p:IsA("Instance") and not p.Parent) then removePlayer(p) end
-	end
-	for roleName, _ in pairs(roleHeaders) do
-		removeRoleHeaderIfEmpty(roleName)
-	end
-end
-
-for _, player in Players:GetPlayers() do
-	connect(player)
-end
-
-Players.PlayerAdded:Connect(connect)
-Players.PlayerRemoving:Connect(disconnect)
 
 StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
 
 return {
-	UpdateRow = updateRow,
-	Connect = connect,
-	Disconnect = disconnect,
-	UpdateList = updateList,
+	BootJob = Schedules.Boot.job(init),
+	Update = rebuildLeaderboard,
 }
