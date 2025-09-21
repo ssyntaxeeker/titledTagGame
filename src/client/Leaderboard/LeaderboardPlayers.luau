@@ -43,7 +43,10 @@ local function ensureRoleHeader(roleName, playerCount)
 
 	local config = getRoleConfig(roleName)
 	local roleColor = (config and config.Color) or Color3.new(1, 1, 1)
-	local light1 = lerpColor(roleColor, Color3.new(1, 1, 1), 0.15)
+	
+	header.BackgroundColor3 = roleColor
+	
+	--[[local light1 = lerpColor(roleColor, Color3.new(1, 1, 1), 0.15)
 	local light2 = lerpColor(roleColor, Color3.new(1, 1, 1), 0.3)
 	local light3 = lerpColor(roleColor, Color3.new(1, 1, 1), 0.85)
 
@@ -54,7 +57,7 @@ local function ensureRoleHeader(roleName, playerCount)
 			ColorSequenceKeypoint.new(0.95, light2),
 			ColorSequenceKeypoint.new(1, light3),
 		}
-	end
+	end--]]
 
 	if header:FindFirstChild("gamemodename") then header.gamemodename.Text = string.format("%s - %d", roleName:upper(), playerCount) end
 
@@ -63,9 +66,9 @@ local function ensureRoleHeader(roleName, playerCount)
 end
 
 local function pickBadgeImage(subject)
-	if subject:GetAttribute("Dev") then return "rbxassetid://12318465145" end
-	if subject:GetAttribute("Mod") or subject:GetAttribute("Admin") then return "rbxassetid://18759169432" end
-	if subject:GetAttribute("VIP") then return "rbxassetid://18772350480" end
+	if subject:GetAttribute("Dev") then return "rbxassetid://111274839439490" end
+	if subject:GetAttribute("Mod") then return "rbxassetid://78957964972625" end
+	if subject:GetAttribute("VIP") then return "rbxassetid://85292019066930" end
 
 	local inGroup = subject:GetAttribute("InGroup")
 
@@ -90,6 +93,7 @@ local function updateRow(player)
 
 	row.NameFrame.level.Text = "Rank: " .. tostring(player:GetAttribute("Rank") or "?")
 	row.Stats.tags.Text = tostring(player:GetAttribute("Tags") or 0)
+	row.Stats.elo.Text = tostring(player:GetAttribute("ELO") or 0)
 
 	row.ImageColor3 = getRoleConfig(player.Character and player.Character:GetAttribute("Role") or "Runner").Color
 

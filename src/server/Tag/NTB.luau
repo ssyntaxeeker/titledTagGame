@@ -12,7 +12,7 @@ function NTB.Hit(player)
 		_version += 1
 		NTBVersions[character] = _version
 
-		task.delay(2.5, function()
+		task.delay(3, function()
 			if NTBVersions[character] == _version then character:SetAttribute("NTBDurability", 0) end
 		end)
 		return

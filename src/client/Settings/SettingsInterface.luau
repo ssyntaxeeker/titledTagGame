@@ -21,6 +21,7 @@ return {
 		roleChangeVisuals = 1,
 		disableShadows = false,
 		fov = 1,
+		alwaysShowHP = false,
 	},
 	audio = {
 		musicVolume = 0.5,
@@ -29,4 +30,13 @@ return {
 		tagVolume = 1,
 		movementVolume = 0.7,
 	},
+	keybinds = {
+		changeCameraPerspective = Enum.KeyCode.V, 
+		unlockCamera = Enum.UserInputType.MouseButton2,
+		tag = Enum.UserInputType.MouseButton1,
+		vaultAndSwing = Enum.KeyCode.Space,
+		slideAndCrouch = Enum.KeyCode.C,
+		roll = Enum.KeyCode.C,
+		toggleSettings = Enum.KeyCode.M
+	}
 }

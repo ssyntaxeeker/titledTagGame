@@ -7,7 +7,7 @@ local RolesFunctions = require(ServerStorage.Modules.GameLogic.Roles.RolesFuncti
 local RolesUtils = require(ServerStorage.Modules.GameLogic.Roles.RolesUtils)
 
 return ModesList.AddMode("Classic", function()
-	ClockFunctions.SetTime(120)
+	ClockFunctions.SetTime(90 + (2 * #Players:GetPlayers()))
 
 	local teamsList = RolesUtils.SeparatePlayersIntoTeams(Players:GetPlayers(), { Tagger = 20, Runner = 20 })
 

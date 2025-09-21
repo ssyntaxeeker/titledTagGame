@@ -17,6 +17,16 @@ local function loadCharacter(player)
 	humanoid.Died:Once(function()
 		task.delay(2.5, function()
 			loadCharacter(player)
+
+			local gamemode = workspace:GetAttribute("Gamemode")
+			if gamemode then
+				local roleConfig = require(ReplicatedStorage.Shared.Configs.Modes[gamemode])
+				if roleConfig.respawnAsRole then 
+					RolesFunctions.ChangeRole(player, "Alone")
+					return
+				end
+			end 
+
 			RolesFunctions.ChangeRole(player, "Dead")
 		end)
 	end)

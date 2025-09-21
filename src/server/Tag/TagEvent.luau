@@ -35,43 +35,51 @@ TagRE.OnServerEvent:Connect(function(player, target)
 
 		local targetPlayer = Players:GetPlayerFromCharacter(targetCharacter)
 
-		if targetPlayer then
-			if not durability or durability == 0 then
-				PlaySoundRE:FireAllClients("Hit", targetRootPart)
-				ApplyKnockbackRE:FireClient(targetPlayer, character)
-			else
-				PlaySoundRE:FireAllClients("NTBHit", targetRootPart)
-				ApplyKnockbackRE:FireClient(targetPlayer, character, "NTB")
-			end
+		if not durability or durability == 0 then
+			PlaySoundRE:FireAllClients("Hit", targetRootPart)
+			if targetPlayer then ApplyKnockbackRE:FireClient(targetPlayer, character) end
+		else
+			PlaySoundRE:FireAllClients("NTBHit", targetRootPart)
+			if targetPlayer then ApplyKnockbackRE:FireClient(targetPlayer, character, "NTB") end
+		end
 
-			if workspace:GetAttribute("TimeLeft") == 0 then return end
+		if workspace:GetAttribute("TimeLeft") == 0 then return end
 
-			local modeConfig = ReplicatedStorage.Shared.Configs.Modes:FindFirstChild(workspace:GetAttribute("Gamemode"))
-			if not modeConfig then return end
+		local modeConfig = ReplicatedStorage.Shared.Configs.Modes:FindFirstChild(workspace:GetAttribute("Gamemode"))
+		if not modeConfig then return end
 
-			modeConfig = require(modeConfig)
-			if not modeConfig.allowTagging then return end
+		modeConfig = require(modeConfig)
+		if not modeConfig.allowTagging then return end
 
-			local playerRole, targetPlayerRole = character:GetAttribute("Role"), targetCharacter:GetAttribute("Role")
-			local playerRoleConfig = require(RoleConfigsStorage[playerRole])
+		local playerRole, targetPlayerRole = character:GetAttribute("Role"), targetCharacter:GetAttribute("Role")
+		local playerRoleConfig = require(RoleConfigsStorage[playerRole])
 
-			if playerRoleConfig.canTagRoles and table.find(playerRoleConfig.canTagRoles, targetPlayerRole) then
-				if durability ~= 0 and durability ~= nil then
-					NTB.Hit(targetPlayer)
+		if durability ~= 0 and durability ~= nil then
+			if targetPlayer then NTB.Hit(targetPlayer) end
+			if durability - 1 == 0 then PlaySoundRE:FireAllClients("NTBHitBreak", targetRootPart) end
 
-					if durability - 1 == 0 then PlaySoundRE:FireAllClients("NTBHitBreak", targetRootPart) end
-					return
-				end
+			return
+		end
 
+		if not modeConfig.allowDamage and playerRoleConfig.canTagRoles and table.find(playerRoleConfig.canTagRoles, targetPlayerRole) then
+			local playerProxy = Profiles.ReturnProxy(player)
+			playerProxy.Tags += 1
+
+			RolesFunctions.ChangeRole(player, playerRoleConfig.onTagBecomes)
+			if targetPlayer then RolesFunctions.ChangeRole(targetPlayer, playerRoleConfig.onTagGives) end
+
+			NTB.Hit(player)
+			if targetPlayer then NTB.Hit(targetPlayer) end
+		elseif modeConfig.allowDamage then
+			targetHumanoid.Health -= modeConfig.allowDamage
+
+			if targetHumanoid.Health <= 0 then
 				local playerProxy = Profiles.ReturnProxy(player)
 				playerProxy.Tags += 1
-
-				RolesFunctions.ChangeRole(player, playerRoleConfig.onTagBecomes)
-				RolesFunctions.ChangeRole(targetPlayer, playerRoleConfig.onTagGives)
-
-				NTB.Hit(player)
-				NTB.Hit(targetPlayer)
 			end
+
+			NTB.Hit(player)
+			if targetPlayer then NTB.Hit(targetPlayer) end
 		end
 	end
 end)

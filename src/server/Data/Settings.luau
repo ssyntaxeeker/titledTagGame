@@ -17,6 +17,8 @@ ChangeSettingsRE.OnServerEvent:Connect(function(player, settingName, key, value)
 	local _settings = proxy.Settings[settingName]
 	if not _settings or _settings[key] == nil then return end
 
+	if typeof(value) == "EnumItem" then value = tostring(value) end
+
 	_settings[key] = value
 end)
 

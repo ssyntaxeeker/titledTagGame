@@ -8,6 +8,19 @@ local ChangeSettingsRE = Net:RemoteEvent("ChangeSettings")
 
 local SettingsUtils = {}
 
+function SettingsUtils.KeybindButton(button, onUpdate)
+	button.MouseButton1Click:Connect(function()
+		button.Text = "-"
+		UserInputService.InputBegan:Once(function(input)
+			local key = input.KeyCode ~= Enum.KeyCode.Unknown and input.KeyCode or input.UserInputType
+			button.Text = ({MouseButton1="LMB", MouseButton2="RMB", MouseButton3="MMB"})[key.Name] or key.Name
+
+			onUpdate(key)
+			ChangeSettingsRE:FireServer(button:GetAttribute("settingName"), button:GetAttribute("keyName"), key)
+		end)
+	end)
+end
+
 function SettingsUtils.SlideMarker(marker, onUpdate)
 	if not marker then return end
 	local slider = marker.Parent

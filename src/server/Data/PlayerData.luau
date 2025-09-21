@@ -6,7 +6,7 @@ local ProfileStore = require(ServerStorage.Packages.ProfileStore)
 local Profiles = require(ServerStorage.Modules.Data.Profiles)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 
-local PlayerProfileStore = ProfileStore.New("PlayerData_V3", Profiles.PlayerDataTemplate)
+local PlayerProfileStore = ProfileStore.New("PRE_RELEASE_1", Profiles.PlayerDataTemplate)
 
 local function initPlayer(player)
 	local profile = Profiles.Create(PlayerProfileStore, player)

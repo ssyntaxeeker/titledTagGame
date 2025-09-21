@@ -24,7 +24,7 @@ local function init()
 	end)
 
 	SettingsInterface.updateSignal:Connect(function()
-		Frame.Button.Text = SettingsInterface.gameplay.cameraShake == true and "X" or ""
+		Frame.Button.Text = SettingsInterface.gameplay.moveCameraY == true and "X" or ""
 	end)
 end
 

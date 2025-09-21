@@ -18,6 +18,8 @@ return function(studs, instance)
 	local character = localPlayer.Character
 	if not character then return end
 
+	studs = math.clamp(studs, 0, 2.75)
+
 	if CooldownManager.getCooldown(localPlayer, "Vault") then return end
 	CooldownManager.modifyCooldown(localPlayer, "Vault", true, 0.1)
 
@@ -35,7 +37,7 @@ return function(studs, instance)
 	task.spawn(function()
 		DebugFunctions.Print(
 			`{string.format("%.2f", studs)} studs`,
-			(studs > 2.75 and "Rainbow") or studs > 2.25 and DebugConfig.DEBUG_PERFECT_VAULT_COLOR or DebugConfig.DEBUG_NORMAL_VAULT_COLOR
+			(studs >= 2.75 and "Rainbow") or studs > 2.25 and DebugConfig.DEBUG_PERFECT_VAULT_COLOR or DebugConfig.DEBUG_NORMAL_VAULT_COLOR
 		)
 	end)
 

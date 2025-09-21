@@ -53,4 +53,28 @@ function CommandsUtils.CheckForPermission(player, canUseTable)
 	return false
 end
 
+function CommandsUtils.GetPlayerPermission(player, canUseTable)
+	if not player then return end
+
+	for role, users in Whitelist do
+		if not table.find(users, player.Name) and not table.find(users, tostring(player.UserId)) then continue end
+
+		return role
+	end
+
+	return
+end
+
+function CommandsUtils.ChangePlayerChatPermissions(player)
+	if not player then return false end
+
+	for role, users in Whitelist do
+		if not table.find(users, player.Name) and not table.find(users, tostring(player.UserId)) then continue end
+
+		return true
+	end
+
+	return false
+end
+
 return CommandsUtils

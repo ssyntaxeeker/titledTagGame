@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 
 local Assets = ReplicatedStorage.Assets
 
@@ -14,10 +15,12 @@ local UIFunctions = {}
 
 function UIFunctions.Open()
 	SettingsUI.Enabled = true
+	UserInputService.MouseIconEnabled = true
 end
 
 function UIFunctions.Close()
 	SettingsUI.Enabled = false
+	UserInputService.MouseIconEnabled = false
 end
 
 function UIFunctions.ChangeTab(newTabName)

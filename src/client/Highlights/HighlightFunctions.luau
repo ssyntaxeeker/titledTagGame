@@ -1,6 +1,7 @@
--- HighlightFunctions.lua
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local localPlayer = Players.LocalPlayer
 
 local HighlightFunctions = {}
 local characterHighlights = {}
@@ -39,15 +40,12 @@ function HighlightFunctions.HighlightRole(roleName)
 
 	for _, player in Players:GetPlayers() do
 		local character = player.Character
-		if character and character:GetAttribute("Role") == roleName then highlight(character, roleConfig.Color) end
+		if player ~= localPlayer and character and character:GetAttribute("Role") == roleName then highlight(character, roleConfig.Color) end
 	end
 end
 
 function HighlightFunctions.AttemptToHighlightCharacter(character)
-	if not character then return end
-
-	local localPlayer = Players.LocalPlayer
-	if localPlayer and character == localPlayer.Character then return end
+	if character == localPlayer.Character then return end
 
 	local role = character:GetAttribute("Role")
 	if not role or not highlightedRoles[role] then

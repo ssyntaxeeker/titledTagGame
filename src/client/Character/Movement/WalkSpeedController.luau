@@ -36,7 +36,7 @@ local function adjustWalkSpeed(character, dt)
 	local targetSpeed = minRunSpeed
 	local floorMaterial = humanoid.FloorMaterial
 
-	if currentSpeed > 35.5 then
+	if currentSpeed > 37 then
 		deceleration *= (5 / 6) * currentSpeed - 28.6667
 	end
 

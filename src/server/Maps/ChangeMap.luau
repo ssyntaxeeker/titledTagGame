@@ -4,6 +4,7 @@ local ServerStorage = game:GetService("ServerStorage")
 
 local CharacterLoader = require(ServerStorage.Modules.Characters.CharacterLoader)
 local Net = require(ReplicatedStorage.Packages.Net)
+local RoundManager = require(ServerStorage.Modules.GameLogic.Round.RoundManager)
 
 local SplashScreenRE = Net:RemoteEvent("SplashScreen")
 
@@ -23,9 +24,13 @@ local function changeMap(mapModel: Model)
 	newMap.Name = "Map"
 	newMap.Parent = workspace
 
+	task.wait(1)
+
 	for _, player in Players:GetPlayers() do
 		CharacterLoader.Load(player)
 	end
+
+	RoundManager.SetMode(workspace:GetAttribute("Gamemode") or "Intermission")
 
 	SplashScreenRE:FireAllClients(false)
 end
