@@ -56,7 +56,7 @@ local function adjustWalkSpeed(character, dt)
 	local momentum = character:GetAttribute("Momentum") or 0
 	local friction = character:GetAttribute("Friction") or 0
 
-	local decay = if floorMaterial == Enum.Material.Air then momentumDecay * 0.88 else momentumDecay
+	local decay = if floorMaterial == Enum.Material.Air then momentumDecay * 0.62 else momentumDecay
 	local frictionLoss = if floorMaterial == Enum.Material.Air then frictionDecay * 1 else frictionDecay
 
 	momentum = math.clamp(momentum - decay * dt * 60, 0, 32)

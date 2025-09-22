@@ -1,3 +1,4 @@
+local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -71,8 +72,27 @@ function DebugFunctions.VisualizeRaycast(origin, direction, color)
 	game:GetService("Debris"):AddItem(rayPart, 3)
 end
 
+function DebugFunctions.VisualizeSpherecast(origin, radius)
+	if SettingsInterface.debug.showRaycasts == false then return end
+
+	local sphere = Instance.new("Part")
+	sphere.Size = Vector3.new(radius * 2, radius * 2, radius * 2)
+	sphere.Shape = Enum.PartType.Ball
+	sphere.CFrame = CFrame.new(origin)
+	sphere.Color = Color3.new(0.25, 1, 0.25)
+	sphere.Material = Enum.Material.Neon
+	sphere.Transparency = 0.8
+	sphere.Anchored = true
+	sphere.CanCollide = false
+	sphere.CanTouch = false
+	sphere.CanQuery = false
+	sphere.Parent = workspace
+	Debris:AddItem(sphere, 5)
+end
+
 local currentFps = 0
 local lastFpsUpdate = os.clock()
+local currentRegion = ReplicatedStorage:GetAttribute("Region")
 
 function DebugFunctions.Update()
 	local character = localPlayer.Character
@@ -92,6 +112,8 @@ function DebugFunctions.Update()
 		return
 	end
 
+	if not currentRegion then currentRegion = ReplicatedStorage:GetAttribute("Region") end
+
 	local jumpPower, velocity = humanoid.JumpPower, rootPart.Velocity
 
 	if os.clock() - lastFpsUpdate > 0.5 then
@@ -102,13 +124,14 @@ function DebugFunctions.Update()
 	local momentum = math.clamp(walkSpeed - (character:GetAttribute("MaxRunSpeed") or walkSpeed), 0, 100)
 
 	DebugUI.DebugLabel.Text = string.format(
-		"debug:\nFPS: %d\nWalkSpeed: %.2f\nJumpPower: %.2f\nVelocity: %.2f\nFalling speed: %.2f\nMomentum: %.2f",
+		"debug:\nFPS: %d\nWalkSpeed: %.2f\nJumpPower: %.2f\nVelocity: %.2f\nFalling speed: %.2f\nMomentum: %.2f\nRegion: %s",
 		currentFps,
 		walkSpeed,
 		jumpPower,
 		velocity.Magnitude,
 		velocity.Y,
-		momentum
+		momentum,
+		currentRegion
 	)
 end
 

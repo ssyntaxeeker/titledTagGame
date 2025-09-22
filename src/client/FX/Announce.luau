@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 
 local Assets = ReplicatedStorage.Assets
 
@@ -9,8 +10,11 @@ local function announce(message)
 	local UI = Assets.UI.AnnouncementUI:Clone()
 	UI.Parent = localPlayer.PlayerGui
 
+	UserInputService.MouseIconEnabled = true
+
 	UI.Frame.Message.Text = message
 	UI.Frame.CloseButton.MouseButton1Click:Once(function()
+		UserInputService.MouseIconEnabled = false
 		UI:Destroy()
 	end)
 

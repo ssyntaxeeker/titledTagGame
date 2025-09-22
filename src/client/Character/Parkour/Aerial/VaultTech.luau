@@ -43,14 +43,16 @@ return function(studs, instance)
 
 	rootPart.AssemblyLinearVelocity = Vector3.new(
 		rootPart.AssemblyLinearVelocity.X,
-		math.clamp(studs / 1.5 * 30, 30, math.huge),
+		math.clamp(studs / 1.5 * 31, 27, math.huge),
 		rootPart.AssemblyLinearVelocity.Z
 	) - rootPart.CFrame.LookVector * 2
-
-	character:SetAttribute("Vaulting", nil)
 
 	if instance and (instance.Color == Color3.fromRGB(218, 133, 65) or instance.Color == Color3.fromRGB(248, 248, 248)) then return end
 
 	local momentumAddition = 3 * (character:GetAttribute("VaultMomentumMultiplier") or 0.45)
 	character.Humanoid.WalkSpeed += momentumAddition
+
+	task.delay(0.09, function()
+		character:SetAttribute("Vaulting", nil)
+	end)
 end

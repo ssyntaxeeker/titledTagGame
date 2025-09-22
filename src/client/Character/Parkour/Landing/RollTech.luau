@@ -42,7 +42,11 @@ local function roll(character, ms)
 	local currentRollIndex = rollIndex
 
 	local rollboostTiming = 1.3 + ((0.1 - ms / 1000) * 3.5) ^ 0.85 / (ms > 100 and 1 or 1.4)
-	if rollboostTiming ~= rollboostTiming then rollboostTiming = 0.5 else rollboostTiming = math.clamp(rollboostTiming, 0.5, 2.5) end
+	if rollboostTiming ~= rollboostTiming then
+		rollboostTiming = 0.5
+	else
+		rollboostTiming = math.clamp(rollboostTiming, 0.5, 2.5)
+	end
 
 	task.delay(math.clamp(rollboostTiming / 10, 0.05, 1), function()
 		humanoid.JumpPower = character:GetAttribute("RollboostJumpPower") or 33.6
@@ -93,7 +97,7 @@ local function setupConnections(character)
 			else
 				PlaySound("Land", rootPart, ALVelocityY)
 				PlaySoundRE:FireServer("Land", rootPart, ALVelocityY)
-				if SettingsInterface.gameplay.cameraShake == true then CameraShake.new():Shake(0.07, ALVelocityY / 40, 0.7) end
+				if SettingsInterface.gameplay.cameraShake == true then CameraShake.new():Shake(0.3, ALVelocityY / 40, 0.2) end
 			end
 		end
 	end)

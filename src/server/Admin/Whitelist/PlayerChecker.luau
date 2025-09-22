@@ -29,7 +29,10 @@ Players.PlayerAdded:Connect(function(player)
 		end
 	end
 
-	if not CommandsUtils.CheckForPermission(player, { "Admin", "Playtester", "PrivateServerOwner", "ChatPerms" }) then
+	if
+		not CommandsUtils.CheckForPermission(player, { "Admin", "Playtester", "PrivateServerOwner", "ChatPerms" })
+		and not (game.PrivateServerOwnerId or game.PrivateServerId)
+	then
 		ToggleChatRE:FireClient(player, false)
 	end
 end)

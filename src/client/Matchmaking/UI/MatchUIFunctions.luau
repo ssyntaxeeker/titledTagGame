@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 
 local MatchInterface = require(ReplicatedStorage.Modules.Matchmaking.MatchInterface)
 
@@ -30,7 +31,13 @@ end
 
 function MatchUIFunctions.ToggleUI(bool)
 	MatchUI.Full.Visible = bool
+	UserInputService.MouseIconEnabled = bool
+
 	MatchUIFunctions.UpdateUI()
+end
+
+function MatchUIFunctions.IsOpen()
+	return MatchUI.Full.Visible
 end
 
 return MatchUIFunctions

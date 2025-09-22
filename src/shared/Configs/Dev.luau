@@ -1,4 +1,4 @@
 return {
 	debugMode = false,
-	spawnInBaseplate = true,
+	spawnInBaseplate = false,
 }

@@ -19,81 +19,116 @@ local tagIndex = 1
 local TagFunctions = {}
 
 function TagFunctions.Tag()
-    	if CooldownManager.getCooldown(localPlayer, "Tag") then return end
+	if CooldownManager.getCooldown(localPlayer, "Tag") then return end
 
-		local character = localPlayer.Character
-		if not character then return end
-		local rootPart = character:FindFirstChild("HumanoidRootPart")
-		if not rootPart then return end
+	local character = localPlayer.Character
+	if not character then return end
+	local rootPart = character:FindFirstChild("HumanoidRootPart")
+	if not rootPart then return end
 
-		task.spawn(function()
-			local tagCooldown = character:GetAttribute("TagCooldown") or 1
-			CooldownManager.modifyCooldown(localPlayer, "Tag", true, tagCooldown)
+	task.spawn(function()
+		local tagCooldown = character:GetAttribute("TagCooldown") or 1
+		CooldownManager.modifyCooldown(localPlayer, "Tag", true, tagCooldown)
 
-			if tagIndex % 2 == 0 then tagIndex = 0 end
-			tagIndex += 1
+		if tagIndex % 2 == 0 then tagIndex = 0 end
+		tagIndex += 1
 
-			local tagAnimation = AnimationManager.GetTrack(character.Humanoid.Animator, Assets.Animations.Player[`Tag{tagIndex}`])
-			tagAnimation.Priority = Enum.AnimationPriority.Action3
+		local tagAnimation = AnimationManager.GetTrack(character.Humanoid.Animator, Assets.Animations.Player[`Tag{tagIndex}`])
+		tagAnimation.Priority = Enum.AnimationPriority.Action3
+		tagAnimation:Play()
+		tagAnimation:AdjustSpeed(1 / tagCooldown)
 
-			tagAnimation:Play()
-			tagAnimation:AdjustSpeed(1 / tagCooldown)
+		PlaySound("Tag", rootPart)
+		PlaySoundRE:FireServer("Tag", rootPart)
+		CrosshairFunctions.SetCooldown(tagCooldown)
+	end)
 
-			PlaySound("Tag", rootPart)
-			PlaySoundRE:FireServer("Tag", rootPart)
-			CrosshairFunctions.SetCooldown(tagCooldown)
-		end)
+	local camera = workspace.CurrentCamera
+	local forward = camera.CFrame.LookVector
+	local right = camera.CFrame.RightVector
+	local up = camera.CFrame.UpVector
 
-		local camera = workspace.CurrentCamera
-		local forward = camera.CFrame.LookVector
-		local right = camera.CFrame.RightVector
-		local up = camera.CFrame.UpVector
+	local rayNumber = 9
+	local circleRadius = 1
+	local rangeMultiplier = 1
+	local hits = {}
+	local visualsHit = {}
+	local visualsMiss = {}
+	local characters = {}
 
-		local rayNumber = 9
-		local circleRadius = 1
-		local rangeMultiplier = 1
-		local hits = {}
-		local characters = {}
+	for _, ePlayer in Players:GetPlayers() do
+		if ePlayer == localPlayer then continue end
+		local eCharacter = ePlayer.Character
+		if eCharacter then table.insert(characters, eCharacter) end
+	end
 
-		for _, ePlayer in Players:GetPlayers() do
-			if ePlayer == localPlayer then continue end
+	table.insert(characters, workspace.Bots)
 
-			local eCharacter = ePlayer.Character
-			if eCharacter then table.insert(characters, eCharacter) end
-		end
+	local rayParams = RaycastParams.new()
+	rayParams.FilterDescendantsInstances = characters
+	rayParams.FilterType = Enum.RaycastFilterType.Include
 
-		table.insert(characters, workspace.Bots)
+	local direction = forward * rangeMultiplier * 7
 
-		local rayParams = RaycastParams.new()
-		rayParams.FilterDescendantsInstances = characters
-		rayParams.FilterType = Enum.RaycastFilterType.Include
+	for i = 1, rayNumber do
+		local angle = (i / rayNumber) * math.pi * 2
+		local originOffset = right * math.cos(angle) * circleRadius + up * math.sin(angle) * circleRadius
+		local origin = rootPart.Position + Vector3.new(0, 1.5, 0) + originOffset
 
-		for i = 1, rayNumber do
-			local angle = (i / rayNumber) * math.pi * 2
-			local originOffset = right * math.cos(angle) * circleRadius + up * math.sin(angle) * circleRadius
-			local origin = rootPart.Position + Vector3.new(0, 1.5, 0) + originOffset
-			local direction = forward * rangeMultiplier * 7
-
-			local raycastResult = workspace:Raycast(origin, direction, rayParams)
-			task.spawn(function()
+		local raycastResult = workspace:Raycast(origin, direction, rayParams)
+		if raycastResult then
+			local instance = raycastResult.Instance
+			if
+				CharacterUtils.CheckIfInstanceIsPartOfCharacter(instance)
+				or (not instance.Anchored or instance:GetAttribute("Taggable") or instance.Name == "Lamp")
+			then
+				table.insert(hits, { instance, raycastResult.Position })
+				table.insert(visualsHit, function()
+					DebugFunctions.VisualizeRaycast(origin, direction, Color3.fromRGB(255, 39, 39))
+				end)
+			else
+				table.insert(visualsMiss, function()
+					DebugFunctions.VisualizeRaycast(origin, direction, Color3.fromRGB(255, 39, 39))
+				end)
+			end
+		else
+			table.insert(visualsMiss, function()
 				DebugFunctions.VisualizeRaycast(origin, direction, Color3.fromRGB(255, 39, 39))
 			end)
-
-			if raycastResult then
-				local instance = raycastResult.Instance
-				if
-					CharacterUtils.CheckIfInstanceIsPartOfCharacter(instance)
-					or (not instance.Anchored or instance:GetAttribute("Taggable") or instance.Name == "Lamp")
-				then
-					table.insert(hits, { instance, raycastResult.Position })
-				end
-			end
-		end
-
-		if #hits > 0 then
-			local target = hits[1][1]
-			TagRE:FireServer(target)
 		end
 	end
+
+	local verticalOffset = 1.5
+	local sphereOrigin = rootPart.Position + Vector3.new(0, 1.5, 0)
+	local spherecastResult = workspace:Spherecast(sphereOrigin, verticalOffset, direction, rayParams)
+
+	if spherecastResult and CharacterUtils.CheckIfInstanceIsPartOfCharacter(spherecastResult.Instance) then
+		table.insert(hits, { spherecastResult.Instance, spherecastResult.Position })
+		table.insert(visualsHit, function()
+			DebugFunctions.VisualizeSpherecast(sphereOrigin + direction, verticalOffset)
+		end)
+	else
+		table.insert(visualsMiss, function()
+			DebugFunctions.VisualizeSpherecast(sphereOrigin + direction, verticalOffset)
+		end)
+	end
+
+	task.spawn(function()
+		if #hits > 0 then
+			for _, v in visualsHit do
+				v()
+			end
+		else
+			for _, v in visualsMiss do
+				v()
+			end
+		end
+	end)
+
+	if #hits > 0 then
+		local target = hits[1][1]
+		TagRE:FireServer(target)
+	end
+end
 
 return TagFunctions

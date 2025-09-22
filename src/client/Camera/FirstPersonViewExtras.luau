@@ -10,7 +10,7 @@ local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInt
 local localPlayer = Players.LocalPlayer
 
 local viewableParts = { "Left Arm", "Right Arm", "Left Leg", "Right Leg" }
-local CollideParts = {"HumanoidRootPart", "Left Leg", "Right Leg" }
+local CollideParts = { "HumanoidRootPart", "Left Leg", "Right Leg" }
 
 local renderStepped
 
@@ -44,9 +44,15 @@ end
 local function setCanCollide(character)
 	for _, part in character:GetDescendants() do
 		if not part:IsA("BasePart") then continue end
-		if not table.find(CollideParts, part.Name) then continue end
-
-		part.CanCollide = false
+		if not table.find(CollideParts, part.Name) then
+			part.CanCollide = false
+		else
+			if character:GetAttribute("Vaulting") then
+				part.CanCollide = false
+			else
+				part.CanCollide = true
+			end
+		end
 	end
 end
 

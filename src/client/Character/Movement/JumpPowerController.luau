@@ -14,7 +14,10 @@ local function isRunning()
 end
 
 local function adjustJumpPower(character, dt)
-	local humanoid = character.Humanoid
+	local humanoid = character:FindFirstChild("Humanoid")
+	if not humanoid then return end
+
+	if character:GetAttribute("Rolling") then return end
 
 	local minJumpPower = character:GetAttribute("MinJumpPower") or 16
 	local maxJumpPower = character:GetAttribute("MaxJumpPower") or 28
@@ -37,12 +40,16 @@ end
 local function initCharacter(character)
 	if renderStepped then renderStepped:Disconnect() end
 
-	character:WaitForChild("Humanoid").Died:Connect(function()
-		if not renderStepped then return end
-
-		renderStepped:Disconnect()
-		renderStepped = nil
+	local humanoid = character:WaitForChild("Humanoid")
+	humanoid.Died:Connect(function()
+		if renderStepped then
+			renderStepped:Disconnect()
+			renderStepped = nil
+		end
 	end)
+
+	character:SetAttribute("Momentum", 0)
+	character:SetAttribute("Friction", 0)
 
 	renderStepped = RunService.RenderStepped:Connect(function(dt)
 		adjustJumpPower(character, dt)

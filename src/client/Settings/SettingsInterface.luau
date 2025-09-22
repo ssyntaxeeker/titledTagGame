@@ -31,12 +31,13 @@ return {
 		movementVolume = 0.7,
 	},
 	keybinds = {
-		changeCameraPerspective = Enum.KeyCode.V, 
+		changeCameraPerspective = Enum.KeyCode.V,
 		unlockCamera = Enum.UserInputType.MouseButton2,
 		tag = Enum.UserInputType.MouseButton1,
 		vaultAndSwing = Enum.KeyCode.Space,
 		slideAndCrouch = Enum.KeyCode.C,
 		roll = Enum.KeyCode.C,
-		toggleSettings = Enum.KeyCode.M
-	}
+		toggleSettings = Enum.KeyCode.M,
+		toggleMatchmaking = Enum.KeyCode.N,
+	},
 }

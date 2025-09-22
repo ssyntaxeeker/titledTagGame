@@ -109,15 +109,16 @@ local function initCharacter(character)
 	currentState = nil
 
 	local humanoid = character:WaitForChild("Humanoid")
+	local animator = humanoid:WaitForChild("Animator")
 
-	animations.Walk = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Walk)
-	animations.Run = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Run)
-	animations.Jump1 = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Jump1)
-	animations.Jump2 = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Jump2)
-	animations.Climb = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Climbing)
-	animations.Fall = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Fall)
-	animations.Idle = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Idle)
-	animations.Crouch = AnimationManager.GetTrack(humanoid.Animator, AnimationAssets.Player.Crouch)
+	animations.Walk = AnimationManager.GetTrack(animator, AnimationAssets.Player.Walk)
+	animations.Run = AnimationManager.GetTrack(animator, AnimationAssets.Player.Run)
+	animations.Jump1 = AnimationManager.GetTrack(animator, AnimationAssets.Player.Jump1)
+	animations.Jump2 = AnimationManager.GetTrack(animator, AnimationAssets.Player.Jump2)
+	animations.Climb = AnimationManager.GetTrack(animator, AnimationAssets.Player.Climbing)
+	animations.Fall = AnimationManager.GetTrack(animator, AnimationAssets.Player.Fall)
+	animations.Idle = AnimationManager.GetTrack(animator, AnimationAssets.Player.Idle)
+	animations.Crouch = AnimationManager.GetTrack(animator, AnimationAssets.Player.Crouch)
 
 	humanoid.Died:Connect(function()
 		if renderStepped then

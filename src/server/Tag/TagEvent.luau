@@ -14,6 +14,9 @@ local TagRE = Net:RemoteEvent("Tag")
 local PlaySoundRE = Net:RemoteEvent("PlaySound")
 local ApplyKnockbackRE = Net:RemoteEvent("ApplyKnockback")
 
+local mapRayParams = RaycastParams.new()
+mapRayParams.FilterType = Enum.RaycastFilterType.Include
+
 TagRE.OnServerEvent:Connect(function(player, target)
 	local character = player.Character
 	if not character then return end
@@ -21,8 +24,14 @@ TagRE.OnServerEvent:Connect(function(player, target)
 	local rootPart = character:FindFirstChild("HumanoidRootPart")
 	if not rootPart then return end
 	if not target or not target:IsA("Instance") then return end
+	if (rootPart.Position - target.Position).Magnitude > 13 then return end
+	if character.Humanoid.Health <= 0 then return end
 
-	if (rootPart.Position - target.Position).Magnitude > 25 then return end
+	local direction = (target.Position - rootPart.Position).Unit
+	mapRayParams.FilterDescendantsInstances = { workspace:FindFirstChild("Map"), workspace.Dev }
+
+	local obstruction = workspace:Raycast(rootPart.Position, direction * 12, mapRayParams)
+	if obstruction and obstruction.Instance then return end
 
 	local targetHumanoid = CharacterUtils.CheckIfInstanceIsPartOfCharacter(target)
 	if targetHumanoid then
@@ -36,7 +45,7 @@ TagRE.OnServerEvent:Connect(function(player, target)
 		local targetPlayer = Players:GetPlayerFromCharacter(targetCharacter)
 
 		if not durability or durability == 0 then
-			PlaySoundRE:FireAllClients("Hit", targetRootPart)
+			PlaySoundRE:FireAllClients("TagHit", targetRootPart)
 			if targetPlayer then ApplyKnockbackRE:FireClient(targetPlayer, character) end
 		else
 			PlaySoundRE:FireAllClients("NTBHit", targetRootPart)

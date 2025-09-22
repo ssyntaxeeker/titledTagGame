@@ -15,6 +15,7 @@ return {
 	ChatPerms = {
 		"RapidVenita",
 		"Cayito08",
+		"minecraft_bearboy",
 		"ImmortalLegend66",
 		"elitexvert1",
 		"Wakka265",
@@ -34,6 +35,9 @@ return {
 		"moon0192k",
 		"AredsterYT",
 		"aredster",
+		"Cayito08",
+		"DefinetlyNotBloxrus4",
+		"twilightlaments",
 	},
 	PrivateServerOwner = {},
 }
