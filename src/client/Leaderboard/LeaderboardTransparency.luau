@@ -1,7 +1,9 @@
 local GuiService = game:GetService("GuiService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local LeaderboardFunctions = require(script.Parent.LeaderboardFunctions)
-local _, _, ScrollFrame = LeaderboardFunctions.GetUI()
+local LeaderboardFunctions = require(ReplicatedStorage.Modules.Leaderboard.LeaderboardFunctions)
+
+local _, ScrollFrame = LeaderboardFunctions.GetUI()
 
 local function updateTransparency(alpha)
 	for i = 1, #ScrollFrame:GetChildren() do

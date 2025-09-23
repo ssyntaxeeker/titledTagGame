@@ -24,14 +24,8 @@ TagRE.OnServerEvent:Connect(function(player, target)
 	local rootPart = character:FindFirstChild("HumanoidRootPart")
 	if not rootPart then return end
 	if not target or not target:IsA("Instance") then return end
-	if (rootPart.Position - target.Position).Magnitude > 13 then return end
+	if (rootPart.Position - target.Position).Magnitude > 27 then return end
 	if character.Humanoid.Health <= 0 then return end
-
-	local direction = (target.Position - rootPart.Position).Unit
-	mapRayParams.FilterDescendantsInstances = { workspace:FindFirstChild("Map"), workspace.Dev }
-
-	local obstruction = workspace:Raycast(rootPart.Position, direction * 12, mapRayParams)
-	if obstruction and obstruction.Instance then return end
 
 	local targetHumanoid = CharacterUtils.CheckIfInstanceIsPartOfCharacter(target)
 	if targetHumanoid then

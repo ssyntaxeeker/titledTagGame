@@ -8,6 +8,10 @@ function CharacterUtils.RemoveExtraAccessories(character)
 		if accessory:IsA("CharacterMesh") then accessory:Destroy() end
 		if not accessory:IsA("Accessory") then continue end
 
+		for _, v in accessory:GetDescendants() do
+			if v:IsA("BasePart") then v.CanCollide = false end
+		end
+
 		local accessoryType = accessory.AccessoryType
 		if accessoryType == Enum.AccessoryType.Hair then continue end
 		if accessoryType == Enum.AccessoryType.Hat then continue end

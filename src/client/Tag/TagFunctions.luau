@@ -54,7 +54,7 @@ function TagFunctions.Tag()
 	local hits = {}
 	local visualsHit = {}
 	local visualsMiss = {}
-	local characters = {}
+	local characters = { workspace:FindFirstChild("Map") }
 
 	for _, ePlayer in Players:GetPlayers() do
 		if ePlayer == localPlayer then continue end

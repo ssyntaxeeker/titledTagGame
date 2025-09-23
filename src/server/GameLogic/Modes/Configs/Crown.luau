@@ -11,7 +11,7 @@ return ModesList.AddMode("Crown", function()
 
 	local teamsList = RolesUtils.SeparatePlayersIntoTeams(
 		Players:GetPlayers(),
-		{ Crown = (math.clamp(math.round(#Players:GetPlayers() / 10), 1, 4)), Peasant = 40 }
+		{ Crown = (math.clamp(math.floor(#Players:GetPlayers() / 10), 1, 4)), Peasant = 40 }
 	)
 
 	for player, team in teamsList do

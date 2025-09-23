@@ -20,7 +20,7 @@ module.PlayerDataTemplate = {
 		},
 		display = {
 			firstPersonTransparency = 0,
-			roleChangeVisuals = 1,
+			showRoleChangeText = 1,
 			disableShadows = false,
 			fov = 1,
 			alwaysShowHP = false,

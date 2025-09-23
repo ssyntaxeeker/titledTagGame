@@ -1,9 +1,12 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local CameraModule = require(ReplicatedStorage.Modules.Camera.CameraModule)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 
 local Assets = ReplicatedStorage.Assets
+
+local localPlayer = Players.LocalPlayer
 
 local function updateOverheadUI(player)
 	local character = player.Character
@@ -27,6 +30,8 @@ local function updateOverheadUI(player)
 
 	UI.NameContainer.DisplayName.Text = player.DisplayName
 	UI.NameContainer.rank.Text = `rank {player:GetAttribute("Rank")}` or "rank C"
+
+	UI.Enabled = if player == localPlayer and CameraModule.FirstPerson == true then false else true
 end
 
 local function connectCharacter(player, character)
@@ -38,6 +43,7 @@ local function connectCharacter(player, character)
 
 	local newOverheadUI = Assets.UI.Extra.PlayerName:Clone()
 	newOverheadUI.Name = "PlayerName"
+	newOverheadUI.Adornee = head
 	newOverheadUI.Parent = head
 	newOverheadUI.Enabled = false
 

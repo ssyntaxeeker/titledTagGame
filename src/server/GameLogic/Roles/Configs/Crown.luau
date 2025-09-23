@@ -15,5 +15,5 @@ return RolesFunctions.RegisterRole("Crown", function(player)
 	character:SetAttribute("AccelerationRate", 32)
 	character:SetAttribute("DecelerationRate", 1.2)
 
-	character:SetAttribute("VaultMomentumMultiplier", 0.6)
+	character:SetAttribute("VaultMomentumMultiplier", 0.8)
 end)

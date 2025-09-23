@@ -1,9 +1,12 @@
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInterface)
+
+local localPlayer = Players.LocalPlayer
 
 local CameraModule = {}
 CameraModule.FirstPerson = true
@@ -35,6 +38,7 @@ function CameraModule.SetCharacter(character)
 		initCameraCFrame = camera.CFrame
 
 		if CameraModule.FirstPerson then
+			localPlayer.CameraMode = Enum.CameraMode.LockFirstPerson
 			humanoid.CameraOffset = Vector3.new(0, 0, -0.3)
 
 			if SettingsInterface.gameplay.moveCameraY == false then
@@ -43,12 +47,13 @@ function CameraModule.SetCharacter(character)
 				local constrainedY = math.clamp(targetY, startY - 0.3, startY + 0.3)
 				local camPos = Vector3.new(camera.CFrame.Position.X, constrainedY, camera.CFrame.Position.Z)
 				camera.CFrame = CFrame.new(camPos, camPos + initCameraCFrame.LookVector)
-				--camera.CFrame = initCameraCFrame * CFrame.new(0, 0, 0)
 			else
-				local headPos = head.Position
+				local headPos = Vector3.new(rootPart.Position.X, head.Position.Y, rootPart.Position.Z)
 				camera.CFrame = CFrame.new(headPos, headPos + initCameraCFrame.LookVector)
 			end
 		else
+			localPlayer.CameraMode = Enum.CameraMode.Classic
+
 			local yOffset = CameraModule.CameraOffset * Vector3.yAxis
 			local xzOffset = CFrame.new(CameraModule.CameraOffset * (Vector3.xAxis + Vector3.zAxis))
 

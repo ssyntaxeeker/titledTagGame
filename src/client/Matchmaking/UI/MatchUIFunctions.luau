@@ -2,9 +2,14 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
+local CooldownManager = require(ReplicatedStorage.Vendor.CooldownManager)
 local MatchInterface = require(ReplicatedStorage.Modules.Matchmaking.MatchInterface)
+local Net = require(ReplicatedStorage.Packages.Net)
 
 local Assets = ReplicatedStorage.Assets
+
+local QueuePlayerRE = Net:RemoteFunction("QueuePlayer")
+local DequeuePlayerRE = Net:RemoteFunction("DequeuePlayer")
 
 local localPlayer = Players.LocalPlayer
 
@@ -12,6 +17,24 @@ local MatchUI = Assets.UI.MatchUI:Clone()
 MatchUI.Parent = localPlayer.PlayerGui
 
 local MatchUIFunctions = {}
+
+local function clickQueue()
+	if CooldownManager.getCooldown(localPlayer, "Queue") then return end
+	CooldownManager.modifyCooldown(localPlayer, "Queue", true)
+
+	if MatchInterface.queueStatus then
+		DequeuePlayerRE:InvokeServer()
+		MatchUI.Full.Queue.Text = "QUEUE"
+		MatchInterface.queueStatus = nil
+	else
+		QueuePlayerRE:InvokeServer()
+		MatchUI.Full.Queue.Text = "DEQUEUE"
+		MatchInterface.queueStatus = "queued"
+	end
+
+	MatchUIFunctions.UpdateUI()
+	CooldownManager.modifyCooldown(localPlayer, "Queue", false)
+end
 
 function MatchUIFunctions.UpdateUI()
 	if MatchInterface.queueStatus then
@@ -39,5 +62,7 @@ end
 function MatchUIFunctions.IsOpen()
 	return MatchUI.Full.Visible
 end
+
+MatchUI.Full.Queue.MouseButton1Click:Connect(clickQueue)
 
 return MatchUIFunctions

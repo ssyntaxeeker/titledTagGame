@@ -15,5 +15,5 @@ return RolesFunctions.RegisterRole("Tagger", function(player)
 	character:SetAttribute("AccelerationRate", 24)
 	character:SetAttribute("DecelerationRate", 1.3)
 
-	character:SetAttribute("VaultMomentumMultiplier", 0.6)
+	character:SetAttribute("VaultMomentumMultiplier", 0.85)
 end)

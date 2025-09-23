@@ -6,11 +6,11 @@ return {
 		"elitexvert1",
 		"spargati",
 		"vdogbark",
-		"spargati",
 		"dinicoursavageplays",
 		"whoswkz",
 		"guest1secre",
 		"Kermit_4L",
+		"RightOffHeaven",
 	},
 	ChatPerms = {
 		"RapidVenita",
@@ -23,6 +23,7 @@ return {
 		"The_king1180",
 		"Levickas123",
 		"m1n1bud",
+		"biuty_girlpower",
 		"kevinardo0815",
 		"TOG_INTERNET",
 		"bombastic101415",
@@ -38,6 +39,7 @@ return {
 		"Cayito08",
 		"DefinetlyNotBloxrus4",
 		"twilightlaments",
+		"Syzen1234",
 	},
 	PrivateServerOwner = {},
 }

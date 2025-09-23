@@ -8,8 +8,7 @@ local localPlayer = Players.LocalPlayer
 local LeaderboardUI = Assets.UI.LeaderboardUI:Clone()
 LeaderboardUI.Parent = localPlayer:WaitForChild("PlayerGui")
 
-local Frame = LeaderboardUI.Frame
-local ScrollFrame = Frame.ScrollingFrame
+local ScrollFrame = LeaderboardUI.ScrollingFrame
 
 local LeaderboardFunctions = {}
 
@@ -20,7 +19,7 @@ local function tween(obj, info, props)
 end
 
 function LeaderboardFunctions.GetUI()
-	return LeaderboardUI, Frame, ScrollFrame
+	return LeaderboardUI, ScrollFrame
 end
 
 function LeaderboardFunctions.SetUIEnabled(b)
@@ -31,8 +30,8 @@ function LeaderboardFunctions.ToggleListVisible()
 	visible = not visible
 	local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 	local anchorX = visible and 1 or 0
-	tween(Frame, tweenInfo, { AnchorPoint = Vector2.new(anchorX, 0), Visible = visible })
-	Frame.Visible = visible
+	tween(ScrollFrame, tweenInfo, { AnchorPoint = Vector2.new(anchorX, 0), Visible = visible })
+	ScrollFrame.Visible = visible
 end
 
 function LeaderboardFunctions.Tween(obj, info, props)

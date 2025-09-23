@@ -19,8 +19,8 @@ local Vignette = RoleStatusUI.Vignette
 
 local DescriptionStroke = Instance.new("NumberValue")
 DescriptionStroke.Name = "DescriptionStrokeValue"
-DescriptionStroke.Parent = RoleStatusUI
 DescriptionStroke.Value = 0
+DescriptionStroke.Parent = RoleStatusUI
 
 local currentDescription
 local activeTask
@@ -39,31 +39,28 @@ end)
 
 local tweenVignetteFadeOut = TweenService:Create(Vignette, TweenInfo.new(1.5), { ImageTransparency = 1 })
 local tweenTitleExpand = TweenService:Create(TitleLabel, TweenInfo.new(0.5, Enum.EasingStyle.Back), {
-	Size = UDim2.fromScale(0.7, 0.2),
+	Size = UDim2.fromScale(0.8, 0.25),
 	Position = UDim2.fromScale(0.5, 0.5),
 })
 local tweenTitleRotate = TweenService:Create(TitleLabel, TweenInfo.new(1, Enum.EasingStyle.Elastic), { Rotation = 0 })
 local tweenYouAreMove = TweenService:Create(YouAreLabel, TweenInfo.new(0.5, Enum.EasingStyle.Back), {
-	Position = UDim2.fromScale(0.5, 0.42),
+	Position = UDim2.fromScale(0.5, 0.4),
 })
 local tweenDescriptionMove = TweenService:Create(DescriptionLabel, TweenInfo.new(0.5, Enum.EasingStyle.Back), {
-	Position = UDim2.fromScale(0.5, 0.58),
+	Position = UDim2.fromScale(0.5, 0.6),
 })
-local initialTweens = { tweenVignetteFadeOut, tweenTitleExpand, tweenTitleRotate, tweenYouAreMove, tweenDescriptionMove }
 
-local shineTweens = {}
-if TitleLabel:FindFirstChild("Shine") then
-	if TitleLabel.Shine:FindFirstChild("UIGradient") then
-		table.insert(shineTweens, TweenService:Create(TitleLabel.Shine.UIGradient, TweenInfo.new(1), { Offset = Vector2.new(1.33, 0) }))
-	end
-	if TitleLabel.Shine:FindFirstChild("Outline") and TitleLabel.Shine.Outline:FindFirstChild("UIGradient") then
-		table.insert(shineTweens, TweenService:Create(TitleLabel.Shine.Outline.UIGradient, TweenInfo.new(1), { Offset = Vector2.new(1.33, 0) }))
-	end
-end
+local initialTweens = {
+	tweenVignetteFadeOut,
+	tweenTitleExpand,
+	tweenTitleRotate,
+	tweenYouAreMove,
+	tweenDescriptionMove,
+}
 
-local fadeOutTweens = {}
-local tweenDescriptionFadeOut = TweenService:Create(DescriptionStroke, TweenInfo.new(1.5), { Value = 1 })
-table.insert(fadeOutTweens, tweenDescriptionFadeOut)
+local fadeOutTweens = {
+	TweenService:Create(DescriptionStroke, TweenInfo.new(1.5), { Value = 1 }),
+}
 
 for _, descendant in RoleStatusUI.Role:GetDescendants() do
 	if descendant:IsA("TextLabel") then
@@ -75,13 +72,10 @@ for _, descendant in RoleStatusUI.Role:GetDescendants() do
 end
 
 local allTweens = {}
-for _, t in ipairs(initialTweens) do
+for _, t in initialTweens do
 	table.insert(allTweens, t)
 end
-for _, t in ipairs(shineTweens) do
-	table.insert(allTweens, t)
-end
-for _, t in ipairs(fadeOutTweens) do
+for _, t in fadeOutTweens do
 	table.insert(allTweens, t)
 end
 
@@ -89,15 +83,14 @@ local function resetUI()
 	DescriptionStroke.Value = 0
 	Vignette.ImageTransparency = 0
 	Vignette.Visible = true
+
 	TitleLabel.Size = UDim2.fromScale(0.625, 0.15)
 	TitleLabel.Position = UDim2.fromScale(0.5, 0.55)
-	TitleLabel.Rotation = 10
+	TitleLabel.Rotation = math.random(-10, 10)
+
 	YouAreLabel.Position = UDim2.fromScale(0.5, 0.47)
 	DescriptionLabel.Position = UDim2.fromScale(0.5, 0.63)
-	if TitleLabel:FindFirstChild("Shine") then
-		TitleLabel.Shine.UIGradient.Offset = Vector2.new(-0.33, 0)
-		if TitleLabel.Shine:FindFirstChild("Outline") then TitleLabel.Shine.Outline.UIGradient.Offset = Vector2.new(-0.33, 0) end
-	end
+
 	for _, descendant in RoleStatusUI.Role:GetDescendants() do
 		if descendant:IsA("TextLabel") then
 			descendant.TextTransparency = 0
@@ -107,22 +100,25 @@ local function resetUI()
 end
 
 local function stopTweens()
-	for _, t in ipairs(allTweens) do
+	for _, t in allTweens do
 		t:Cancel()
 	end
 end
 
 local function DisplayRoleChange(newRole)
 	if not newRole or newRole == "Dead" then return end
+
 	if activeTask then
 		task.cancel(activeTask)
 		stopTweens()
 		resetUI()
 		RoleStatusUI.Role.Visible = false
 	end
+
 	activeTask = task.spawn(function()
 		local roleData = require(ReplicatedStorage.Shared.Configs.Roles[newRole])
 		if not roleData then return end
+
 		currentDescription = roleData.DescText
 		resetUI()
 		Vignette.ImageColor3 = roleData.VignetteColor or roleData.Color
@@ -130,22 +126,22 @@ local function DisplayRoleChange(newRole)
 		TitleLabel.Outline.Color = roleData.TextOuterColor or roleData.Color
 		YouAreLabel.Text = roleData.YouAreText or "OH GOD"
 		TitleLabel.Text = roleData.RoleText or "I BROKE THE DAMN ROLE SYSTEM"
+
 		updateDescription(roleData.DescText)
-		if TitleLabel:FindFirstChild("Shine") then TitleLabel.Shine.Text = TitleLabel.Text end
 		PlaySound("RoleChange")
-		RoleStatusUI.Role.Visible = SettingsInterface.display.roleChangeVisuals == 1 or SettingsInterface.display.roleChangeVisuals == 2
-		for _, t in ipairs(initialTweens) do
+
+		RoleStatusUI.Role.Visible = (SettingsInterface.display.showRoleChangeText == true)
+
+		for _, t in initialTweens do
 			t:Play()
 		end
-		task.wait(0.25)
-		for _, t in ipairs(shineTweens) do
-			t:Play()
-		end
+
 		task.wait((roleData.BecomeTime or 2) - 0.25)
 		Vignette.Visible = false
-		for _, t in ipairs(fadeOutTweens) do
+		for _, t in fadeOutTweens do
 			t:Play()
 		end
+
 		task.wait(1.5)
 		RoleStatusUI.Role.Visible = false
 		activeTask = nil
@@ -155,6 +151,7 @@ end
 local function setupCharacter(character)
 	local currentRole = character:GetAttribute("Role")
 	if currentRole then DisplayRoleChange(currentRole) end
+
 	character:GetAttributeChangedSignal("Role"):Connect(function()
 		DisplayRoleChange(character:GetAttribute("Role"))
 	end)
@@ -162,6 +159,7 @@ end
 
 local function init()
 	if localPlayer.Character then setupCharacter(localPlayer.Character) end
+
 	localPlayer.CharacterAdded:Connect(setupCharacter)
 end
 

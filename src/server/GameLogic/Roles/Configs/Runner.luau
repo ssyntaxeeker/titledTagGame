@@ -15,5 +15,5 @@ return RolesFunctions.RegisterRole("Runner", function(player)
 	character:SetAttribute("AccelerationRate", 16)
 	character:SetAttribute("DecelerationRate", 1.4)
 
-	character:SetAttribute("VaultMomentumMultiplier", 0.5)
+	character:SetAttribute("VaultMomentumMultiplier", 0.7)
 end)

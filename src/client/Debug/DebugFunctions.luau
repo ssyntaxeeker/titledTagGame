@@ -112,7 +112,7 @@ function DebugFunctions.Update()
 		return
 	end
 
-	if not currentRegion then currentRegion = ReplicatedStorage:GetAttribute("Region") end
+	if not currentRegion then currentRegion = "N/A" end
 
 	local jumpPower, velocity = humanoid.JumpPower, rootPart.Velocity
 

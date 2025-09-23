@@ -2,10 +2,12 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
 
-local LeaderboardFunctions = require(script.Parent.LeaderboardFunctions)
+local LeaderboardFunctions = require(ReplicatedStorage.Modules.Leaderboard.LeaderboardFunctions)
+local RankColors = require(ReplicatedStorage.Shared.Configs.RankColors)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
+local StarsColors = require(ReplicatedStorage.Shared.Configs.StarsColors)
 
-local _, _, ScrollFrame = LeaderboardFunctions.GetUI()
+local _, ScrollFrame = LeaderboardFunctions.GetUI()
 local UIListLayout = ScrollFrame:WaitForChild("UIListLayout")
 local PlayerTemplate = UIListLayout:WaitForChild("PlayerTemplate")
 local RoleTemplate = UIListLayout:WaitForChild("RoleTemplate")
@@ -13,9 +15,7 @@ local RoleTemplate = UIListLayout:WaitForChild("RoleTemplate")
 local playerRows = {}
 local roleHeaders = {}
 
-local function lerpColor(a, b, t)
-	return Color3.new(a.R + (b.R - a.R) * t, a.G + (b.G - a.G) * t, a.B + (b.B - a.B) * t)
-end
+local cachedThumbnails = {}
 
 local function getRoleConfig(roleName)
 	local rolesFolder = ReplicatedStorage.Shared.Configs.Roles
@@ -32,7 +32,7 @@ end
 local function ensureRoleHeader(roleName, playerCount)
 	if roleHeaders[roleName] then
 		local header = roleHeaders[roleName]
-		header.gamemodename.Text = string.format("%s - %d", roleName:upper(), playerCount)
+		header.gamemode.Text = string.format("%s - %d", roleName:upper(), playerCount)
 		return header
 	end
 
@@ -43,9 +43,9 @@ local function ensureRoleHeader(roleName, playerCount)
 
 	local config = getRoleConfig(roleName)
 	local roleColor = (config and config.Color) or Color3.new(1, 1, 1)
-	
+
 	header.BackgroundColor3 = roleColor
-	
+
 	--[[local light1 = lerpColor(roleColor, Color3.new(1, 1, 1), 0.15)
 	local light2 = lerpColor(roleColor, Color3.new(1, 1, 1), 0.3)
 	local light3 = lerpColor(roleColor, Color3.new(1, 1, 1), 0.85)
@@ -59,7 +59,7 @@ local function ensureRoleHeader(roleName, playerCount)
 		}
 	end--]]
 
-	if header:FindFirstChild("gamemodename") then header.gamemodename.Text = string.format("%s - %d", roleName:upper(), playerCount) end
+	if header:FindFirstChild("gamemode") then header.gamemode.Text = string.format("%s - %d", roleName:upper(), playerCount) end
 
 	roleHeaders[roleName] = header
 	return header, roleColor
@@ -89,9 +89,16 @@ end
 
 local function updateRow(player)
 	local row = playerRows[player] or createRow(player)
-	row.NameFrame.displayname.Text = player.DisplayName or player.Name
+	row.username.Text = player.DisplayName or player.Name
 
-	row.NameFrame.level.Text = "Rank: " .. tostring(player:GetAttribute("Rank") or "?")
+	local stars = tonumber(player:GetAttribute("Stars"))
+	row.Stats.stars.starsText.Text = stars or 0
+	row.Stats.stars.ImageColor3 = StarsColors[math.floor(stars or 0)] or StarsColors[1]
+
+	local rank = player:GetAttribute("Rank")
+	row.Stats.rank.rankText.Text = rank or "C"
+	row.Stats.rank.ImageColor3 = RankColors[rank] or RankColors["C"]
+
 	row.Stats.tags.Text = tostring(player:GetAttribute("Tags") or 0)
 	row.Stats.elo.Text = tostring(player:GetAttribute("ELO") or 0)
 
@@ -99,17 +106,26 @@ local function updateRow(player)
 
 	local badge = pickBadgeImage(player)
 
-	local playerIcon = row:FindFirstChild("playericon")
+	local playerIcon = row:FindFirstChild("playerIcon")
 
-	if playerIcon and playerIcon.icon then
-		playerIcon.icon.Visible = badge ~= nil
-		if badge then playerIcon.icon.Image = badge end
+	if playerIcon and playerIcon.badge then
+		playerIcon.badge.Visible = badge ~= nil
+		if badge then playerIcon.badge.Image = badge end
 	end
 
-	local ok, content = pcall(function()
-		return Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
-	end)
-	if ok and content and playerIcon and playerIcon:IsA("ImageLabel") then playerIcon.Image = content end
+	local thumbnail = cachedThumbnails[player.UserId]
+
+	if not thumbnail then
+		local ok, content = pcall(function()
+			return Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+		end)
+		if ok and content then
+			cachedThumbnails[player.UserId] = content
+			thumbnail = content
+		end
+	end
+
+	if thumbnail and playerIcon then playerIcon.Image = thumbnail end
 end
 
 local function rebuildLeaderboard()
@@ -169,7 +185,8 @@ end
 
 local function connectPlayer(player)
 	player:GetAttributeChangedSignal("Rank"):Connect(rebuildLeaderboard)
-	player:GetAttributeChangedSignal("Tags"):Connect(rebuildLeaderboard)
+	player:GetAttributeChangedSignal("ELO"):Connect(rebuildLeaderboard)
+	player:GetAttributeChangedSignal("Stars"):Connect(rebuildLeaderboard)
 
 	player.CharacterAdded:Connect(connectCharacter)
 

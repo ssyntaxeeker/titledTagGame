@@ -11,7 +11,7 @@ local localPlayer = Players.LocalPlayer
 local renderStepped
 
 local function calculateFOV(walkSpeed)
-	local fov = 50 * SettingsInterface.display.fov + 70
+	local fov = 50 * SettingsInterface.display.fov + 75
 
 	local m = ((fov + 7) - (fov - 7)) / 16
 	local y = m * (walkSpeed - 16) + (fov + 2)
