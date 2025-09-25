@@ -7,6 +7,7 @@ local DebugConfig = require(ReplicatedStorage.Modules.Debug.DebugConfig)
 local DebugFunctions = require(ReplicatedStorage.Modules.Debug.DebugFunctions)
 local Net = require(ReplicatedStorage.Packages.Net)
 local PlaySound = require(ReplicatedStorage.Modules.FX.PlaySound)
+local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInterface)
 
 local Assets = ReplicatedStorage.Assets
 
@@ -32,6 +33,7 @@ return function(hitResult)
 	local swingAnimation = AnimationManager.GetTrack(humanoid.Animator, Assets.Animations.Parkour.Swing)
 
 	character:SetAttribute("Swinging", true)
+	CooldownManager.modifyCooldown(localPlayer, "Swing", true, 0.45)
 
 	task.spawn(function()
 		swingAnimation:Play()
@@ -58,11 +60,12 @@ return function(hitResult)
 	local velocity = rootPart.AssemblyLinearVelocity
 	local swingFactor = (math.clamp(-velocity.Y, 25, 56) / 25) ^ 0.7
 
-	CooldownManager.modifyCooldown(localPlayer, "Swing", true, 0.4)
-
 	task.spawn(function()
+		local fmt = SettingsInterface.debug.numericalprecision and "%f" or "%.2f"
+		local out = string.format(fmt, swingFactor * 100)
+
 		DebugFunctions.Print(
-			string.format("%.2f%% vps", swingFactor * 100),
+			`{out}% vps`,
 			Color3.fromHSV(
 				DebugConfig.DEBUG_SWING_COLOR[1],
 				DebugConfig.DEBUG_SWING_COLOR[2] + (swingFactor - 1 + 0.001) / 1.8 / 2,

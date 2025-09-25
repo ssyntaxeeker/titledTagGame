@@ -35,26 +35,29 @@ local function updateOverheadUI(player)
 end
 
 local function connectCharacter(player, character)
-	local head = character:WaitForChild("Head")
-	local humanoid = character:WaitForChild("Humanoid")
+	task.spawn(function()
+		local head = character:WaitForChild("Head", 5)
+		local humanoid = character:WaitForChild("Humanoid", 5)
+		if not humanoid or not head then return end
 
-	humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
-	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+		humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 
-	local newOverheadUI = Assets.UI.Extra.PlayerName:Clone()
-	newOverheadUI.Name = "PlayerName"
-	newOverheadUI.Adornee = head
-	newOverheadUI.Parent = head
-	newOverheadUI.Enabled = false
+		local newOverheadUI = Assets.UI.Extra.PlayerName:Clone()
+		newOverheadUI.Name = "PlayerName"
+		newOverheadUI.Adornee = head
+		newOverheadUI.Parent = head
+		newOverheadUI.Enabled = false
 
-	updateOverheadUI(player)
-
-	humanoid:GetPropertyChangedSignal("Health"):Connect(function()
 		updateOverheadUI(player)
-	end)
 
-	player:GetAttributeChangedSignal("Rank"):Connect(function()
-		updateOverheadUI(player)
+		humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+			updateOverheadUI(player)
+		end)
+
+		player:GetAttributeChangedSignal("Rank"):Connect(function()
+			updateOverheadUI(player)
+		end)
 	end)
 end
 

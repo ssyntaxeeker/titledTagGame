@@ -19,7 +19,7 @@ MatchUI.Parent = localPlayer.PlayerGui
 local MatchUIFunctions = {}
 
 local function clickQueue()
-	if CooldownManager.getCooldown(localPlayer, "Queue") then return end
+	if CooldownManager.getCooldown(localPlayer, "Queue") or MatchInterface.queueStatus == "teleporting" then return end
 	CooldownManager.modifyCooldown(localPlayer, "Queue", true)
 
 	if MatchInterface.queueStatus then
@@ -45,6 +45,8 @@ function MatchUIFunctions.UpdateUI()
 		else
 			MatchUI.Minimized.Visible = false
 		end
+
+		MatchUI.Full.Queue.Text = MatchInterface.queueStatus == "teleporting" and "TELEPORTING" or MatchUI.Full.Queue.Text
 	end
 
 	local playersInQueue = ReplicatedStorage:GetAttribute("PlayersInQueue") or 0
@@ -63,6 +65,14 @@ function MatchUIFunctions.IsOpen()
 	return MatchUI.Full.Visible
 end
 
-MatchUI.Full.Queue.MouseButton1Click:Connect(clickQueue)
+MatchUI.Full.Queue.MouseButton1Up:Connect(clickQueue)
+
+ReplicatedStorage:GetAttributeChangedSignal("PlayersInQueue"):Connect(MatchUIFunctions.UpdateUI)
+
+Players.PlayerRemoving:Connect(function(player)
+	if player ~= localPlayer then return end
+
+	if MatchInterface.queueStatus then DequeuePlayerRE:InvokeServer() end
+end)
 
 return MatchUIFunctions

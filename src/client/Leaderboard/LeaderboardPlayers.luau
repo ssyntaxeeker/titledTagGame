@@ -165,7 +165,7 @@ local function rebuildLeaderboard()
 		header.LayoutOrder = layoutOrder
 
 		table.sort(group.players, function(a, b)
-			return (a:GetAttribute("Tags") or 0) > (b:GetAttribute("Tags") or 0)
+			return (tonumber(a:GetAttribute("ELO")) or 0) > (tonumber(b:GetAttribute("ELO")) or 0)
 		end)
 
 		for _, player in group.players do

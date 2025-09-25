@@ -11,7 +11,7 @@ local function initListener()
 	for _, button in UIFunctions.ReturnUI().Main.Buttons:GetChildren() do
 		if not button:IsA("TextButton") then continue end
 
-		button.MouseButton1Click:Connect(function()
+		button.MouseButton1Up:Connect(function()
 			clickedButton(button.Name)
 		end)
 	end

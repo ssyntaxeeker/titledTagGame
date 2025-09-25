@@ -14,7 +14,7 @@ local function init()
 
 	Frame.Button.Text = SettingsInterface.debug.showValues == true and "X" or ""
 
-	Frame.Button.MouseButton1Click:Connect(function()
+	Frame.Button.MouseButton1Up:Connect(function()
 		local newSettingsValue = not SettingsInterface.debug.showValues
 
 		SettingsInterface.debug.showValues = newSettingsValue

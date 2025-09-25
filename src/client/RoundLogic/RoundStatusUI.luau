@@ -1,9 +1,12 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Net = require(ReplicatedStorage.Packages.Net)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 
 local Assets = ReplicatedStorage.Assets
+
+local UpdateClientScoresRE = Net:RemoteEvent("UpdateClientScores")
 
 local localPlayer = Players.LocalPlayer
 
@@ -50,8 +53,30 @@ local function syncTimeLeft()
 	end
 end
 
+local function syncScore(scores)
+	local lpId = tostring(localPlayer.UserId)
+	local lpScore = tostring(scores[lpId] or 0)
+	local parts = {}
+
+	for userId, score in scores do
+		if userId ~= lpId then table.insert(parts, tostring(score or 0)) end
+	end
+
+	for i = #parts, 2, -1 do
+		local j = math.random(1, i)
+		parts[i], parts[j] = parts[j], parts[i]
+	end
+
+	table.insert(parts, 1, lpScore)
+
+	Main.Score.Text = table.concat(parts, " - ")
+	Main.Score.Visible = true
+end
+
 workspace:GetAttributeChangedSignal("Gamemode"):Connect(syncGamemode)
 workspace:GetAttributeChangedSignal("TimeLeft"):Connect(syncTimeLeft)
+
+UpdateClientScoresRE.OnClientEvent:Connect(syncScore)
 
 local function initializeAttributes()
 	syncGamemode()

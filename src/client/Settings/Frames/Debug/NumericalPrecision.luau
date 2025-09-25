@@ -10,21 +10,21 @@ local ChangeSettingsRE = Net:RemoteEvent("ChangeSettings")
 local localPlayer = Players.LocalPlayer
 
 local function init()
-	local Frame = localPlayer.PlayerGui.SettingsUI.Main.Frames.Display.showRoleChangeText
+	local Frame = localPlayer.PlayerGui.SettingsUI.Main.Frames.Debug.numericalPrecision
 
-	Frame.Button.Text = SettingsInterface.display.showRoleChangeText == true and "X" or ""
+	Frame.Button.Text = SettingsInterface.debug.numericalprecision == true and "X" or ""
 
 	Frame.Button.MouseButton1Up:Connect(function()
-		local newSettingsValue = not SettingsInterface.display.showRoleChangeText
+		local newSettingsValue = not SettingsInterface.debug.numericalprecision
 
-		SettingsInterface.display.showRoleChangeText = newSettingsValue
+		SettingsInterface.debug.numericalprecision = newSettingsValue
 		Frame.Button.Text = newSettingsValue == true and "X" or ""
 
-		ChangeSettingsRE:FireServer("display", "showRoleChangeText", newSettingsValue)
+		ChangeSettingsRE:FireServer("debug", "numericalprecision", newSettingsValue)
 	end)
 
 	SettingsInterface.updateSignal:Connect(function()
-		Frame.Button.Text = SettingsInterface.display.showRoleChangeText == true and "X" or ""
+		Frame.Button.Text = SettingsInterface.debug.numericalprecision == true and "X" or ""
 	end)
 end
 

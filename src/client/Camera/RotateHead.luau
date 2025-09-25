@@ -13,7 +13,7 @@ local updateRate = 1 / 20
 local accumulated = 0
 local HeadHorFactor = 0.8
 local HeadVertFactor = 0.7
-local UpdateSpeed = 0.9
+local UpdateSpeed = 0.7
 
 local Dist, Diff
 local Head, Torso, Neck, NeckOrgnC0

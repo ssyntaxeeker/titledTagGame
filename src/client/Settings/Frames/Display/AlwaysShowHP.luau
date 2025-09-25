@@ -1,10 +1,10 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local UpdateHealthBarUI = require(ReplicatedStorage.Modules.HealthBar.UpdateHealthBarUI)
 local Net = require(ReplicatedStorage.Packages.Net)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInterface)
+local UpdateHealthBarUI = require(ReplicatedStorage.Modules.HealthBar.UpdateHealthBarUI)
 
 local ChangeSettingsRE = Net:RemoteEvent("ChangeSettings")
 
@@ -15,7 +15,7 @@ local function init()
 
 	Frame.Button.Text = SettingsInterface.display.alwaysShowHP == true and "X" or ""
 
-	Frame.Button.MouseButton1Click:Connect(function()
+	Frame.Button.MouseButton1Up:Connect(function()
 		local newSettingsValue = not SettingsInterface.display.alwaysShowHP
 
 		SettingsInterface.display.alwaysShowHP = newSettingsValue

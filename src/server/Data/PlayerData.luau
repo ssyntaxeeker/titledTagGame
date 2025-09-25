@@ -2,11 +2,33 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
+local MatchmakingFunctions = require(ServerStorage.Modules.Matchmaking.MatchmakingFunctions)
+local MatchmakingInterface = require(ServerStorage.Modules.Matchmaking.MatchmakingInterface)
 local ProfileStore = require(ServerStorage.Packages.ProfileStore)
 local Profiles = require(ServerStorage.Modules.Data.Profiles)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 
 local PlayerProfileStore = ProfileStore.New("PRE_RELEASE_1", Profiles.PlayerDataTemplate)
+
+local function forfeitRanked(forfeitingPlayer)
+	for _, score in MatchmakingInterface.scores do
+		if score >= 4 then return end
+	end
+
+	local players = Players:GetPlayers()
+
+	local opponents = {}
+	for _, player in players do
+		if player ~= forfeitingPlayer then table.insert(opponents, player) end
+	end
+
+	if #opponents == 0 then return end
+
+	local randomOpponent = opponents[math.random(1, #opponents)]
+
+	MatchmakingFunctions.GiveElo(forfeitingPlayer, randomOpponent, 0)
+	MatchmakingFunctions.GiveElo(randomOpponent, forfeitingPlayer, 1)
+end
 
 local function initPlayer(player)
 	local profile = Profiles.Create(PlayerProfileStore, player)
@@ -33,7 +55,11 @@ local function init()
 	Players.PlayerRemoving:Connect(function(player)
 		local profile = Profiles.ReturnProfile(player)
 
-		if profile ~= nil then profile:EndSession() end
+		if profile ~= nil then
+			if ReplicatedStorage:GetAttribute("Ranked") then forfeitRanked(player) end
+
+			profile:EndSession()
+		end
 	end)
 end
 

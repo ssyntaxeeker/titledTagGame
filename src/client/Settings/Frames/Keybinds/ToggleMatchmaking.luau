@@ -6,10 +6,13 @@ local MatchUIFunctions = require(ReplicatedStorage.Modules.Matchmaking.UI.MatchU
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInterface)
 local SettingsUtils = require(ReplicatedStorage.Modules.Settings.SettingsUtils)
+local UpdateSideButtons = require(ReplicatedStorage.Modules.SideButtons.UpdateSideButtons)
 
 local localPlayer = Players.LocalPlayer
 
 local function upd(key)
+	UpdateSideButtons()
+
 	InputsManager.RemoveInput("ToggleMatchmaking")
 	InputsManager.AddInput("ToggleMatchmaking", {
 		Keys = { key },

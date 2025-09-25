@@ -13,7 +13,7 @@ local function announce(message)
 	UserInputService.MouseIconEnabled = true
 
 	UI.Frame.Message.Text = message
-	UI.Frame.CloseButton.MouseButton1Click:Once(function()
+	UI.Frame.CloseButton.MouseButton1Up:Once(function()
 		UserInputService.MouseIconEnabled = false
 		UI:Destroy()
 	end)

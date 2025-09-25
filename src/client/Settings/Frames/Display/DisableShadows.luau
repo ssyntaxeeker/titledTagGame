@@ -15,7 +15,7 @@ local function init()
 
 	Frame.Button.Text = SettingsInterface.display.disableShadows == true and "X" or ""
 
-	Frame.Button.MouseButton1Click:Connect(function()
+	Frame.Button.MouseButton1Up:Connect(function()
 		local newSettingsValue = not SettingsInterface.display.disableShadows
 
 		SettingsInterface.display.disableShadows = newSettingsValue
@@ -27,7 +27,7 @@ local function init()
 
 	SettingsInterface.updateSignal:Connect(function()
 		Frame.Button.Text = SettingsInterface.display.disableShadows == true and "X" or ""
-		Lighting.GlobalShadows	 = not SettingsInterface.display.disableShadows
+		Lighting.GlobalShadows = not SettingsInterface.display.disableShadows
 	end)
 end
 

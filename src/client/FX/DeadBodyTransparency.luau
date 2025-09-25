@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 
-local function setBodyTransparency(character)
+local function setBodyTransparency(character, transparency)
 	local player = Players:GetPlayerFromCharacter(character)
 
 	task.spawn(function()
@@ -12,13 +12,17 @@ local function setBodyTransparency(character)
 		until player:HasAppearanceLoaded()
 
 		for _, part in character:GetDescendants() do
-			if part:IsA("BasePart") then part.Transparency = 0.6 end
+			if part:IsA("BasePart") and part.Transparency ~= 1 then part.Transparency = transparency end
 		end
 	end)
 end
 
 local function checkCharacterRole(character)
-	if character:GetAttribute("Role") == "Dead" then setBodyTransparency(character) end
+	if character:GetAttribute("Role") == "Dead" then
+		setBodyTransparency(character, 0.6)
+	else
+		setBodyTransparency(character, 0)
+	end
 end
 
 local function initPlayer(player)

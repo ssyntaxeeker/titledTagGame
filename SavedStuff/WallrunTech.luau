@@ -27,7 +27,7 @@ local function releaseWallrun(applyBoost: boolean)
 	local rootPart = character.HumanoidRootPart
 
 	if applyBoost and rootPart then
-		CameraShake.new():Shake(0.4, 0.2, 0.4)
+		CameraShake.new():Shake(0.3, 0.05, 0.5)
 
 		local lookVector = rootPart.CFrame.LookVector
 		local side = math.sign(workspace.CurrentCamera.CFrame.X or 0)

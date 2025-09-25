@@ -35,7 +35,7 @@ local function handleBounce(tramp)
 
 	PlaySoundRE:FireServer("Trampoline", rootPart)
 	PlaySound("Trampoline", rootPart)
-	if SettingsInterface.gameplay.cameraShake == true then CameraShake.new():Shake(0.3, bounceAmount / 60, 0.6) end
+	if SettingsInterface.gameplay.cameraShake == true then CameraShake.new():Shake(0.3, bounceAmount / 150, 0.6) end
 end
 
 local function getTrampolineBelow(character)

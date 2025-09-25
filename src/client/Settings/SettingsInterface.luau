@@ -7,14 +7,15 @@ return {
 
 	gameplay = {
 		moveCameraY = true,
-		thirdPersonDistanceX = 0.3,
-		thirdPersonDistanceZ = 0.7,
+		thirdPersonDistanceX = 0.7,
+		thirdPersonDistanceZ = 0.5,
 		cameraShake = false,
 	},
 	debug = {
 		showValues = true,
 		showRaycasts = false,
 		showDebug = false,
+		numericalprecision = false,
 	},
 	display = {
 		firstPersonTransparency = 0,

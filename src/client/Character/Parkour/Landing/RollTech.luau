@@ -63,8 +63,11 @@ local function roll(character, ms)
 	local rootPart = character.HumanoidRootPart
 
 	task.spawn(function()
+		local fmt = SettingsInterface.debug.numericalprecision and "%f" or "%.2f"
+		local out = string.format(fmt, ms)
+
 		DebugFunctions.Print(
-			`{string.format("%.2f", ms)} ms`,
+			`{out} ms`,
 			(ms < 8 and "Rainbow") or (ms < 100 and DebugConfig.DEBUG_PERFECT_ROLL_COLOR) or DebugConfig.DEBUG_NORMAL_ROLL_COLOR
 		)
 	end)
@@ -97,7 +100,7 @@ local function setupConnections(character)
 			else
 				PlaySound("Land", rootPart, ALVelocityY)
 				PlaySoundRE:FireServer("Land", rootPart, ALVelocityY)
-				if SettingsInterface.gameplay.cameraShake == true then CameraShake.new():Shake(0.3, ALVelocityY / 40, 0.2) end
+				if SettingsInterface.gameplay.cameraShake == true then CameraShake.new():Shake(0.3, ALVelocityY / 120, 0.2) end
 			end
 		end
 	end)

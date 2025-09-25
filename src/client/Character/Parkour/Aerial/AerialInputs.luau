@@ -16,61 +16,61 @@ rayParams.IgnoreWater = true
 local AerialInputs = {}
 
 function AerialInputs.JumpRequest()
-    	local character = localPlayer.Character
-		if not character then return end
+	local character = localPlayer.Character
+	if not character then return end
 
-		local rootPart = character:FindFirstChild("HumanoidRootPart")
-		if not rootPart then return end
+	local rootPart = character:FindFirstChild("HumanoidRootPart")
+	if not rootPart then return end
 
-		if character:GetAttribute("Crouching") or character:GetAttribute("Sliding") then return end
+	if character:GetAttribute("Crouching") or character:GetAttribute("Sliding") then return end
 
-		rayParams.FilterDescendantsInstances = { character, workspace.Debug }
+	rayParams.FilterDescendantsInstances = { character, workspace.Debug }
 
-		local obstacleHit = nil
+	local obstacleHit = nil
 
-		for distance = 0.5, 2.25, 0.25 do
-			if not obstacleHit then
-				local origin = rootPart.Position + rootPart.CFrame.LookVector * distance + Vector3.yAxis * 2.75
-				local direction = -Vector3.yAxis * 3.25
+	for distance = 0.5, 2, 0.25 do
+		if not obstacleHit then
+			local origin = rootPart.Position + rootPart.CFrame.LookVector * distance + Vector3.yAxis * 2.75
+			local direction = -Vector3.yAxis * 3.25
 
-				obstacleHit = Workspace:Raycast(origin, direction, rayParams)
-			end
+			obstacleHit = Workspace:Raycast(origin, direction, rayParams)
 		end
+	end
+
+	task.spawn(function()
+		DebugFunctions.VisualizeRaycast(
+			rootPart.Position + rootPart.CFrame.LookVector * 2 + rootPart.CFrame.UpVector * 2.75,
+			-rootPart.CFrame.UpVector * 3.25
+		)
+	end)
+
+	if obstacleHit then
+		local rootLookVector = rootPart.CFrame.LookVector
+		local forwardRay = Ray.new(rootPart.Position + Vector3.new(0, 1.25, 0) - rootLookVector * 2.5, rootLookVector * 3)
+
+		local forwardCheck = Workspace:Raycast(forwardRay.Origin, forwardRay.Direction, rayParams)
+
+		if forwardCheck then return end
+
+		local instance = obstacleHit.Instance
 
 		task.spawn(function()
-			DebugFunctions.VisualizeRaycast(
-				rootPart.Position + rootPart.CFrame.LookVector * 2 + rootPart.CFrame.UpVector * 2.75,
-				-rootPart.CFrame.UpVector * 3.25
-			)
+			DebugFunctions.VisualizeRaycast(forwardRay.Origin, forwardRay.Direction, Color3.fromRGB(255, 0, 0))
 		end)
 
-		if obstacleHit then
-			local rootLookVector = rootPart.CFrame.LookVector
-			local forwardRay = Ray.new(rootPart.Position + Vector3.new(0, 1.25, 0) - rootLookVector * 2.5, rootLookVector * 3)
+		if forwardCheck then return end
 
-			local forwardCheck = Workspace:Raycast(forwardRay.Origin, forwardRay.Direction, rayParams)
-
-			if forwardCheck then return end
-
-			local instance = obstacleHit.Instance
-
-			task.spawn(function()
-				DebugFunctions.VisualizeRaycast(forwardRay.Origin, forwardRay.Direction, Color3.fromRGB(255, 0, 0))
-			end)
-
-			if forwardCheck then return end
-
-			if instance:GetAttribute("SwingBar") and not AerialInterface.swingingBar then
-				SwingTech(obstacleHit)
-				return
-			end
-
-			if instance:GetAttribute("NoClimb") then return end
-
-			local vaultHeight = math.abs(obstacleHit.Position.Y - rootPart.Position.Y)
-			VaultTech(vaultHeight, instance)
+		if instance:GetAttribute("SwingBar") and not AerialInterface.swingingBar then
+			SwingTech(obstacleHit)
 			return
 		end
+
+		if instance:GetAttribute("NoClimb") then return end
+
+		local vaultHeight = math.abs(obstacleHit.Position.Y - rootPart.Position.Y)
+		VaultTech(vaultHeight, instance)
+		return
+	end
 end
 
 return AerialInputs

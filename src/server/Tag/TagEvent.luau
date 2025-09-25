@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
 local CharacterUtils = require(ReplicatedStorage.Vendor.CharacterUtils)
+local MatchmakingInterface = require(ServerStorage.Modules.Matchmaking.MatchmakingInterface)
 local NTB = require(ServerStorage.Modules.Tag.NTB)
 local Net = require(ReplicatedStorage.Packages.Net)
 local Profiles = require(ServerStorage.Modules.Data.Profiles)
@@ -43,7 +44,6 @@ TagRE.OnServerEvent:Connect(function(player, target)
 			if targetPlayer then ApplyKnockbackRE:FireClient(targetPlayer, character) end
 		else
 			PlaySoundRE:FireAllClients("NTBHit", targetRootPart)
-			if targetPlayer then ApplyKnockbackRE:FireClient(targetPlayer, character, "NTB") end
 		end
 
 		if workspace:GetAttribute("TimeLeft") == 0 then return end
@@ -79,6 +79,8 @@ TagRE.OnServerEvent:Connect(function(player, target)
 			if targetHumanoid.Health <= 0 then
 				local playerProxy = Profiles.ReturnProxy(player)
 				playerProxy.Tags += 1
+
+				if ReplicatedStorage:GetAttribute("Ranked") then MatchmakingInterface.killedSignal:Fire(player) end
 			end
 
 			NTB.Hit(player)
