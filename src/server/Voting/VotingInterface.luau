@@ -1,0 +1,6 @@
+return {
+	votes = {},
+
+	currentModes = {},
+	currentMaps = {},
+}

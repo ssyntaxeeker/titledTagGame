@@ -3,7 +3,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local TextChatService = game:GetService("TextChatService")
 
 local CommandsUtils = require(ServerStorage.Modules.Admin.Commands.CommandsUtils)
-local PlayerChecker = require(ServerStorage.Modules.Admin.Whitelist.PlayerChecker)
+local PlayerCheckerFunctions = require(ServerStorage.Modules.Admin.Whitelist.PlayerCheckerFunctions)
 
 local canUseCommand = {
 	"Admin",
@@ -17,14 +17,12 @@ return TextChatService.TextChatCommands.SetWhitelist.Triggered:Connect(function(
 
 	if not CommandsUtils.CheckForPermission(Players:GetPlayerByUserId(source.UserId), canUseCommand) then return end
 
-	PlayerChecker.whitelist = parameters[2] == "true" and 1 or 0
+	PlayerCheckerFunctions.Perms.whitelist = parameters[2] == "true" and 1 or 0
 	print(`Set whitelist to {parameters[2] == "true" and 1 or 0}`)
 
-	if PlayerChecker.whitelist == 1 then 
-		for _, player in Players:GetPlayers() do 
-			if CommandsUtils.CheckForPermission(player, { "Playtester", "Admin" }) then continue end 
-
-			player:Kick("Whitelist was enabled, you no longer have permission to play on this server.")
+	if PlayerCheckerFunctions.Perms.whitelist == 1 then
+		for _, player in Players:GetPlayers() do
+			PlayerCheckerFunctions.CheckWhitelistPerms(player)
 		end
 	end
 end)

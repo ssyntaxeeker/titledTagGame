@@ -4,6 +4,7 @@ local TweenService = game:GetService("TweenService")
 
 local AnimationManager = require(ReplicatedStorage.Modules.Animations.AnimationManager)
 local CameraModule = require(ReplicatedStorage.Modules.Camera.CameraModule)
+local CooldownManager = require(ReplicatedStorage.Vendor.CooldownManager)
 
 local Assets = ReplicatedStorage.Assets
 
@@ -14,6 +15,8 @@ local Slide = {}
 local slideTweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
 
 function Slide.Start()
+	if CooldownManager.getCooldown(localPlayer, "Slide") == true then return end
+
 	local character = localPlayer.Character
 	local humanoid = character.Humanoid
 
@@ -59,13 +62,15 @@ function Slide.Stop()
 
 	slideAnimation:Stop(0.1)
 
-	humanoid.HipHeight = 0
+	humanoid.HipHeight = -0.1
 	humanoid.WalkSpeed = 28
 	humanoid.JumpPower = character:GetAttribute("MaxJumpPower") or 28
 
 	CameraModule.LockVector = false
 
 	SlideSound:Pause()
+
+	CooldownManager.modifyCooldown(localPlayer, "Slide", true, 0.5)
 end
 
 return Slide

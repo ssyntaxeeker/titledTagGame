@@ -108,8 +108,8 @@ local function initCharacter(character)
 	if renderStepped then renderStepped:Disconnect() end
 	currentState = nil
 
-	local humanoid = character:WaitForChild("Humanoid")
-	local animator = humanoid:WaitForChild("Animator")
+	local humanoid = character:WaitForChild("Humanoid", 15)
+	local animator = humanoid:WaitForChild("Animator", 15)
 
 	animations.Walk = AnimationManager.GetTrack(animator, AnimationAssets.Player.Walk)
 	animations.Run = AnimationManager.GetTrack(animator, AnimationAssets.Player.Run)
@@ -127,7 +127,7 @@ local function initCharacter(character)
 		end
 	end)
 
-	renderStepped = RunService.RenderStepped:Connect(function()
+	renderStepped = RunService.PreAnimation:Connect(function()
 		if character:FindFirstChild("Animate") then character.Animate.Enabled = false end
 
 		updateAnimations(character)

@@ -9,11 +9,11 @@ local localPlayer = Players.LocalPlayer
 
 local UpdateCameraRotationRE = Net:RemoteEvent("UpdateCameraRotation")
 
-local updateRate = 1 / 20
+local updateRate = 1 / 10
 local accumulated = 0
 local HeadHorFactor = 0.8
 local HeadVertFactor = 0.7
-local UpdateSpeed = 0.7
+local UpdateSpeed = 0.5
 
 local Dist, Diff
 local Head, Torso, Neck, NeckOrgnC0
@@ -52,12 +52,12 @@ local function initCharacter(character)
 
 	if not humanoid or not Torso or not Head or not Neck then return end
 
-	renderStepped = RunService.RenderStepped:Connect(function(deltaTime)
+	renderStepped = RunService.Heartbeat:Connect(function(deltaTime)
 		accumulated += deltaTime
 		updateHead()
 		if accumulated >= updateRate then
 			accumulated = 0
-			UpdateCameraRotationRE:FireServer(Neck.C0, nil, nil, nil)
+			UpdateCameraRotationRE:FireServer(Neck.C0)
 		end
 	end)
 end

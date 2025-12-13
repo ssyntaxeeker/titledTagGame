@@ -43,9 +43,6 @@ function InfFFARound.run(players, spawnPositions, killsToScore)
 		if killer and playerKills[killer] ~= nil then
 			playerKills[killer] = playerKills[killer] + 1
 
-			local killerCharacter = killer.Character
-			if killerCharacter then killerCharacter.Humanoid.Health = killerCharacter.Humanoid.MaxHealth end
-
 			if playerKills[killer] >= killsToScore then
 				MatchmakingFunctions.SetScore(killer, (MatchmakingInterface.scores[killer.UserId] or 0) + 1)
 				break

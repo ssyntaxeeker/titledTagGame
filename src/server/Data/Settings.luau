@@ -15,9 +15,10 @@ ChangeSettingsRE.OnServerEvent:Connect(function(player, settingName, key, value)
 	local proxy = Profiles.ReturnProxy(player)
 
 	local _settings = proxy.Settings[settingName]
-	if not _settings or _settings[key] == nil then return end
+	if (not _settings or _settings[key] == nil) and settingName ~= "mobile" then return end
 
 	if typeof(value) == "EnumItem" then value = tostring(value) end
+	if typeof(value) == "UDim2" then value = { value.X.Scale, value.X.Offset, value.Y.Scale, value.Y.Offset } end
 
 	_settings[key] = value
 end)

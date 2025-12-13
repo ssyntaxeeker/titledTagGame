@@ -38,7 +38,7 @@ function CommandsUtils.AutocompletePlayer(input)
 	end
 end
 
-function CommandsUtils.CheckForPermission(player, canUseTable)
+function CommandsUtils.CheckForPermission(player, canUseTable, forChat)
 	if not player then return false end
 
 	for _, role in canUseTable do
@@ -46,14 +46,19 @@ function CommandsUtils.CheckForPermission(player, canUseTable)
 		if not users then continue end
 
 		for _, allowed in users do
-			if allowed == tostring(player.UserId) or allowed == player.Name then return true end
+			if
+				(not ReplicatedStorage:GetAttribute("Ranked") or role == "Admin" or forChat == true)
+				and (allowed == tostring(player.UserId) or allowed == player.Name)
+			then
+				return true
+			end
 		end
 	end
 
 	return false
 end
 
-function CommandsUtils.GetPlayerPermission(player, canUseTable)
+function CommandsUtils.GetPlayerPermission(player)
 	if not player then return end
 
 	for role, users in Whitelist do
@@ -68,7 +73,7 @@ end
 function CommandsUtils.ChangePlayerChatPermissions(player)
 	if not player then return false end
 
-	for role, users in Whitelist do
+	for _, users in Whitelist do
 		if not table.find(users, player.Name) and not table.find(users, tostring(player.UserId)) then continue end
 
 		return true

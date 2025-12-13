@@ -19,7 +19,7 @@ RolesInterface.onRoleChange:Connect(function(player, roleName)
 	bodyColors.RightLegColor3 = roleConfig.Color
 	bodyColors.LeftLegColor3 = roleConfig.Color
 
-	setCollisionGroup(character, roleName == "Dead" and "DeadPlayers" or "Players")
+	setCollisionGroup(character, roleConfig.NoCollisions == true and "DeadPlayers" or "Players")
 end)
 
 return 0

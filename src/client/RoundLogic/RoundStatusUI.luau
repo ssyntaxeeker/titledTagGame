@@ -7,6 +7,7 @@ local Schedules = require(ReplicatedStorage.Shared.Schedules)
 local Assets = ReplicatedStorage.Assets
 
 local UpdateClientScoresRE = Net:RemoteEvent("UpdateClientScores")
+local UpdateLeadRunnerRE = Net:RemoteEvent("UpdateLeadRunner")
 
 local localPlayer = Players.LocalPlayer
 
@@ -14,6 +15,8 @@ local RoundStatusUI = Assets.UI.RoundStatusUI:Clone()
 RoundStatusUI.Parent = localPlayer.PlayerGui
 
 local Main = RoundStatusUI.Main
+
+local roundSoundAssets = Assets.Sounds.Round
 
 local function syncGamemode()
 	local newGamemode = workspace:GetAttribute("Gamemode")
@@ -28,6 +31,12 @@ local function syncGamemode()
 		Main.Gamemode.GamemodeIcon2.Image = gamemodeConfig.UIImage
 	end
 	Main.GameDesc.Text = gamemodeConfig.Descriptions[math.random(1, #gamemodeConfig.Descriptions)]
+
+	if newGamemode == "RankedClassic" then
+		Main.LeadingRunner.Visible = true
+	else
+		Main.LeadingRunner.Visible = false
+	end
 end
 
 local function syncTimeLeft()
@@ -37,7 +46,7 @@ local function syncTimeLeft()
 
 	Main.TimeLeft.Text = if timeLeft == -1 then "time hidden lol" else `time left: {timeLeft}s`
 
-	local roundSoundAssets = Assets.Sounds.Round
+	if gamemode == "Voting" then return end
 
 	if timeLeft <= 3 and timeLeft > 0 and not roundSoundAssets.Boom.IsPlaying then
 		roundSoundAssets.Boom:Play()
@@ -73,10 +82,15 @@ local function syncScore(scores)
 	Main.Score.Visible = true
 end
 
+local function updateLeadRunner(runner)
+	Main.LeadingRunner.Text = runner .. " is leading on time!"
+end
+
 workspace:GetAttributeChangedSignal("Gamemode"):Connect(syncGamemode)
 workspace:GetAttributeChangedSignal("TimeLeft"):Connect(syncTimeLeft)
 
 UpdateClientScoresRE.OnClientEvent:Connect(syncScore)
+UpdateLeadRunnerRE.OnClientEvent:Connect(updateLeadRunner)
 
 local function initializeAttributes()
 	syncGamemode()

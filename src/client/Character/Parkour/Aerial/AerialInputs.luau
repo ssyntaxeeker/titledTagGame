@@ -71,6 +71,8 @@ function AerialInputs.JumpRequest()
 		VaultTech(vaultHeight, instance)
 		return
 	end
+
+	return true
 end
 
 return AerialInputs

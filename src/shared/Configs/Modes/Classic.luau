@@ -1,11 +1,13 @@
 return {
-	UIGlow = Color3.fromRGB(248, 111, 111),
-	UIImage = "rbxassetid://72277233105975",
+	UIGlow = Color3.fromRGB(111, 136, 248),
+	UIImage = "rbxassetid://131947676399392",
 	Name = "classic",
 	Descriptions = { "run from the TAGGERS!" },
 
 	onJoinRole = "Tagger",
 	winRole = "Runner",
+
+	respawnAsRole = "Tagger",
 
 	regiveRoleOnCharacterRemoved = "Runner",
 	allowedRolesToGetRegivenRole = { "Tagger" },

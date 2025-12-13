@@ -7,6 +7,7 @@ local Net = require(ReplicatedStorage.Packages.Net)
 local Profiles = require(ServerStorage.Modules.Data.Profiles)
 
 local UpdateClientScoresRE = Net:RemoteEvent("UpdateClientScores")
+local SetTeleportingStatusRE = Net:RemoteEvent("SetTeleportingStatus")
 
 local MatchmakingFunctions = {}
 
@@ -17,6 +18,9 @@ local TOLERANCE_GROWTH = 25
 
 local function getPlayerElo(player)
 	local proxy = Profiles.ReturnProxy(player)
+
+	if not proxy then return 0 end
+
 	return tonumber(proxy.ELO)
 end
 
@@ -29,6 +33,9 @@ local function getDynamicTolerance(player)
 end
 
 function MatchmakingFunctions.CreateMatch(playerA, playerB)
+	SetTeleportingStatusRE:FireClient(playerA, "teleporting")
+	SetTeleportingStatusRE:FireClient(playerB, "teleporting")
+
 	print(playerA.Name .. " vs " .. playerB.Name)
 
 	queueTimestamps[playerA] = nil

@@ -9,10 +9,6 @@ local Slide = require(ReplicatedStorage.Modules.Character.Parkour.Landing.Slide)
 local localPlayer = Players.LocalPlayer
 local renderStepped
 
-local function isMoving()
-	return UserInputService:IsKeyDown(Enum.KeyCode.W)
-end
-
 local function isSprinting(character)
 	return not UserInputService:IsKeyDown(Enum.KeyCode.LeftShift)
 		and not character:GetAttribute("Crouching")
@@ -22,6 +18,9 @@ end
 local function adjustWalkSpeed(character, dt)
 	local humanoid = character:FindFirstChild("Humanoid")
 	if not humanoid then return end
+
+	local rootPart = character:FindFirstChild("HumanoidRootPart")
+	if not rootPart then return end
 
 	if character:GetAttribute("Rolling") then return end
 
@@ -40,7 +39,9 @@ local function adjustWalkSpeed(character, dt)
 		deceleration *= (5 / 6) * currentSpeed - 28.6667
 	end
 
-	if isMoving() then
+	local movementDirection = rootPart.CFrame:VectorToObjectSpace(rootPart.AssemblyLinearVelocity).Z / humanoid.WalkSpeed
+
+	if movementDirection < -0.05 or humanoid:GetState() == Enum.HumanoidStateType.Climbing or character:GetAttribute("Vaulting") == true then
 		if isSprinting(character) then
 			targetSpeed = maxRunSpeed
 		else
@@ -102,7 +103,7 @@ local function initCharacter(character)
 	character:SetAttribute("Momentum", 0)
 	character:SetAttribute("Friction", 0)
 
-	renderStepped = RunService.RenderStepped:Connect(function(dt)
+	renderStepped = RunService.Heartbeat:Connect(function(dt)
 		adjustWalkSpeed(character, dt)
 	end)
 end

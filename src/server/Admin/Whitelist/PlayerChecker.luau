@@ -1,37 +1,24 @@
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 
 local CommandsUtils = require(ServerStorage.Modules.Admin.Commands.CommandsUtils)
-local Net = require(ReplicatedStorage.Packages.Net)
-local Whitelist = require(ReplicatedStorage.Shared.Configs.Whitelist)
+local PlayerCheckerFunctions = require(ServerStorage.Modules.Admin.Whitelist.PlayerCheckerFunctions)
 
-local ToggleChatRE = Net:RemoteEvent("ToggleChat")
-
-local checkerProperties = { whitelist = 0 }
+local checkerProperties = { whitelist = 0, chatPerms = 0 }
 
 Players.PlayerAdded:Connect(function(player)
-	if
-		not CommandsUtils.CheckForPermission(player, { "Playtester", "Admin" }) and (checkerProperties.whitelist == 1 and not RunService:IsStudio())
-	then
-		print("Kicked " .. player.Name)
-		player:Kick("[WHITELIST ON] You are not allowed here yet (Tester+ only)")
-	else
-		local userRole = CommandsUtils.GetPlayerPermission(player, Whitelist)
+	local userRole = CommandsUtils.GetPlayerPermission(player)
 
-		if userRole == "Playtester" then
-			player:SetAttribute("VIP", true)
-		elseif userRole == "Moderator" then
-			player:SetAttribute("Mod", true)
-		elseif userRole == "Admin" then
-			player:SetAttribute("Dev", true)
-		end
+	if userRole == "Playtester" then
+		player:SetAttribute("VIP", true)
+	elseif userRole == "Moderator" then
+		player:SetAttribute("Mod", true)
+	elseif userRole == "Admin" then
+		player:SetAttribute("Dev", true)
 	end
 
-	if not CommandsUtils.CheckForPermission(player, { "Admin", "Playtester", "PrivateServerOwner", "ChatPerms" }) and game.PrivateServerId == "" then
-		ToggleChatRE:FireClient(player, false)
-	end
+	PlayerCheckerFunctions.CheckWhitelistPerms(player)
+	PlayerCheckerFunctions.CheckChatPerms(player)
 end)
 
 return checkerProperties

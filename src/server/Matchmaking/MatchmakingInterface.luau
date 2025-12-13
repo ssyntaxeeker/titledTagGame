@@ -7,6 +7,5 @@ return {
 	scores = {},
 	runnerTimes = {},
 
-	roundEndedSignal = Signal.new(),
 	killedSignal = Signal.new(),
 }

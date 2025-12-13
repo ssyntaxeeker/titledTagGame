@@ -30,15 +30,15 @@ function LegController.new(Character: Model, Configuration: any)
 	self.Trove = Trove.new() --Creating a Trove OOP object for cleanup and management
 
 	-- Important variables --
-	local Humanoid = Character:WaitForChild("Humanoid")
-	local RootPart = Character:WaitForChild("HumanoidRootPart")
+	local Humanoid = Character:WaitForChild("Humanoid", 15)
+	local RootPart = Character:WaitForChild("HumanoidRootPart", 15)
 
 	local rootJoint = RootPart:WaitForChild("RootJoint")
 	local leftHip = Character:FindFirstChild(Humanoid.RigType == Enum.HumanoidRigType.R15 and "LeftHip" or "Left Hip", true)
 	local rightHip = Character:FindFirstChild(Humanoid.RigType == Enum.HumanoidRigType.R15 and "RightHip" or "Right Hip", true)
 
 	self.States = {
-		["tiltingEnabled"] = true,
+		["tiltingEnabled"] = Configuration.tiltingEnabled,
 		["ikEnabled"] = Configuration.ikEnabled,
 	}
 
@@ -72,7 +72,7 @@ function LegController.new(Character: Model, Configuration: any)
 		self.Trove:Add(ikParts[newAttachment.Name])
 	end
 
-	self.Trove:Connect(RunService.RenderStepped, function(deltaTime: number)
+	self.Trove:Connect(RunService.Heartbeat, function(deltaTime: number)
 		if not Humanoid.Parent:FindFirstChild("HumanoidRootPart") then return end
 
 		local normalizedDeltaTime = deltaTime * 60

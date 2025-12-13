@@ -24,7 +24,7 @@ local function startGame()
 			RankedFunctions.StartRanked()
 		else
 			ChangeMap(Assets.Maps.Crossroads)
-			RoundManager.SetMode("InfCrown")
+			RoundManager.SetMode("Voting")
 		end
 	end)
 end

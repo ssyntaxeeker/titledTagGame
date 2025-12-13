@@ -10,14 +10,14 @@ local localPlayer = Players.LocalPlayer
 local LandingInputs = {}
 
 function LandingInputs.Roll()
-    local character = localPlayer.Character
+	local character = localPlayer.Character
 	if not character then return end
 
 	RollInterface.lastPressed = os.clock()
 end
 
 function LandingInputs.StartSlide()
-   local character = localPlayer.Character
+	local character = localPlayer.Character
 	if not character then return end
 
 	local humanoid = character:FindFirstChild("Humanoid")
@@ -33,11 +33,11 @@ function LandingInputs.StartSlide()
 		end
 	else
 		Crouch.Start()
-	end 
+	end
 end
 
 function LandingInputs.StopSlide()
-    local character = localPlayer.Character
+	local character = localPlayer.Character
 	if not character then return end
 
 	if not character:GetAttribute("Crouching") then return end

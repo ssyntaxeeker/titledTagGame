@@ -9,6 +9,10 @@ local RoundManager = require(ServerStorage.Modules.GameLogic.Round.RoundManager)
 local SplashScreenRE = Net:RemoteEvent("SplashScreen")
 
 local function changeMap(mapModel: Model)
+	local currentMode = workspace:GetAttribute("Gamemode")
+
+	RoundManager.SetMode("Intermission")
+
 	SplashScreenRE:FireAllClients(true)
 
 	for _, player in Players:GetPlayers() do
@@ -20,6 +24,8 @@ local function changeMap(mapModel: Model)
 
 	if workspace:FindFirstChild("Map") then workspace.Map:Destroy() end
 
+	workspace:SetAttribute("Map", mapModel.Name)
+
 	local newMap = mapModel:Clone()
 	newMap.Name = "Map"
 	newMap.Parent = workspace
@@ -30,7 +36,7 @@ local function changeMap(mapModel: Model)
 		CharacterLoader.Load(player)
 	end
 
-	RoundManager.SetMode(workspace:GetAttribute("Gamemode") or "Intermission")
+	RoundManager.SetMode(currentMode or "Intermission")
 
 	SplashScreenRE:FireAllClients(false)
 end

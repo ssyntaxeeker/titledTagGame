@@ -53,7 +53,7 @@ local function getTrampolineBelow(character)
 	return nil
 end
 
-RunService.RenderStepped:Connect(function()
+RunService.Heartbeat:Connect(function()
 	local character = localPlayer.Character
 	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
 

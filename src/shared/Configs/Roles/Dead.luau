@@ -6,4 +6,6 @@ return {
 	TextColor = Color3.fromRGB(228, 228, 228),
 	TextOuterColor = Color3.fromRGB(184, 184, 184),
 	Plural = "Dead",
+
+	NoCollisions = true,
 }

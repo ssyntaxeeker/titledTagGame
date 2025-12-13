@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
+local TeleportService = game:GetService("TeleportService")
 
 local MatchmakingFunctions = require(ServerStorage.Modules.Matchmaking.MatchmakingFunctions)
 local MatchmakingInterface = require(ServerStorage.Modules.Matchmaking.MatchmakingInterface)
@@ -8,7 +9,7 @@ local ProfileStore = require(ServerStorage.Packages.ProfileStore)
 local Profiles = require(ServerStorage.Modules.Data.Profiles)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 
-local PlayerProfileStore = ProfileStore.New("PRE_RELEASE_1", Profiles.PlayerDataTemplate)
+local PlayerProfileStore = ProfileStore.New("RELEASE_1", Profiles.PlayerDataTemplate)
 
 local function forfeitRanked(forfeitingPlayer)
 	for _, score in MatchmakingInterface.scores do
@@ -28,6 +29,8 @@ local function forfeitRanked(forfeitingPlayer)
 
 	MatchmakingFunctions.GiveElo(forfeitingPlayer, randomOpponent, 0)
 	MatchmakingFunctions.GiveElo(randomOpponent, forfeitingPlayer, 1)
+
+	TeleportService:TeleportAsync(game.PlaceId, Players:GetPlayers())
 end
 
 local function initPlayer(player)

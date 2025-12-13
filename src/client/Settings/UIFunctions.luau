@@ -15,12 +15,18 @@ local UIFunctions = {}
 
 function UIFunctions.Open()
 	SettingsUI.Enabled = true
-	UserInputService.MouseIconEnabled = true
+
+	if UserInputService.TouchEnabled == true then
+		SettingsUI.Main.Buttons.Mobile.Visible = true
+		SettingsUI.Main.Buttons.Keybinds.Visible = false
+	else
+		SettingsUI.Main.Buttons.Keybinds.Visible = true
+		SettingsUI.Main.Buttons.Mobile.Visible = false
+	end
 end
 
 function UIFunctions.Close()
 	SettingsUI.Enabled = false
-	UserInputService.MouseIconEnabled = false
 end
 
 function UIFunctions.ChangeTab(newTabName)

@@ -23,9 +23,9 @@ local function sendDiscordWebhook(scores, topPlayers)
 	if #topPlayers == 1 then
 		local winnerId = topPlayers[1]
 		local winner = game.Players:GetPlayerByUserId(winnerId)
-		message = string.format("%s (%d+) vs %s (%d+) - %s WON", players[1].Name, players[1].Score, players[2].Name, players[2].Score, winner.Name)
+		message = string.format("%s (%.2f) vs %s (%.2f) - %s WON", players[1].Name, players[1].Score, players[2].Name, players[2].Score, winner.Name)
 	elseif #topPlayers > 1 then
-		message = string.format("%s (%d+) vs %s (%d+) - TIE", players[1].Name, players[1].Score, players[2].Name, players[2].Score)
+		message = string.format("%s (%.2f) vs %s (%.2f) - TIE", players[1].Name, players[1].Score, players[2].Name, players[2].Score)
 	else
 		message = "No winner determined"
 	end

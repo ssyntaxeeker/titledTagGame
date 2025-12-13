@@ -21,11 +21,11 @@ local function loadCharacter(player)
 			local gamemode = workspace:GetAttribute("Gamemode")
 			if gamemode then
 				local roleConfig = require(ReplicatedStorage.Shared.Configs.Modes[gamemode])
-				if roleConfig.respawnAsRole then 
-					RolesFunctions.ChangeRole(player, "Alone")
+				if roleConfig.respawnAsRole then
+					RolesFunctions.ChangeRole(player, roleConfig.respawnAsRole)
 					return
 				end
-			end 
+			end
 
 			RolesFunctions.ChangeRole(player, "Dead")
 		end)

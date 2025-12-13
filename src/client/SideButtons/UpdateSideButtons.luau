@@ -10,25 +10,29 @@ local Assets = ReplicatedStorage.Assets
 local localPlayer = Players.LocalPlayer
 
 local SideButtonsUI = Assets.UI.SideButtonsUI:Clone()
-SideButtonsUI.Parent = localPlayer.PlayerGui
+SideButtonsUI.Parent = localPlayer:WaitForChild("PlayerGui")
 
-local bar = SideButtonsUI.Bar
+local bar = SideButtonsUI:WaitForChild("Bar")
 
 local function update()
+	if not bar:FindFirstChild("Settings") then return end
+
 	bar.Settings.ButtonKeybind.Text = SettingsInterface.keybinds.toggleSettings.Name
 	bar.Matchmaking.ButtonKeybind.Text = SettingsInterface.keybinds.toggleMatchmaking.Name
 end
 
-bar.Settings.MouseButton1Up:Connect(function()
-	if UIFunctions.IsOpen() then
-		UIFunctions.Close()
-	else
-		UIFunctions.Open()
-	end
-end)
+task.spawn(function()
+	bar:WaitForChild("Settings").MouseButton1Down:Connect(function()
+		if UIFunctions.IsOpen() then
+			UIFunctions.Close()
+		else
+			UIFunctions.Open()
+		end
+	end)
 
-bar.Matchmaking.MouseButton1Up:Connect(function()
-	MatchUIFunctions.ToggleUI(not MatchUIFunctions.IsOpen())
+	bar:WaitForChild("Matchmaking").MouseButton1Down:Connect(function()
+		MatchUIFunctions.ToggleUI(not MatchUIFunctions.IsOpen())
+	end)
 end)
 
 return update

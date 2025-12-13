@@ -1,6 +1,5 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
 
 local CooldownManager = require(ReplicatedStorage.Vendor.CooldownManager)
 local MatchInterface = require(ReplicatedStorage.Modules.Matchmaking.MatchInterface)
@@ -10,6 +9,7 @@ local Assets = ReplicatedStorage.Assets
 
 local QueuePlayerRE = Net:RemoteFunction("QueuePlayer")
 local DequeuePlayerRE = Net:RemoteFunction("DequeuePlayer")
+local SetTeleportingStatusRE = Net:RemoteEvent("SetTeleportingStatus")
 
 local localPlayer = Players.LocalPlayer
 
@@ -56,7 +56,6 @@ end
 
 function MatchUIFunctions.ToggleUI(bool)
 	MatchUI.Full.Visible = bool
-	UserInputService.MouseIconEnabled = bool
 
 	MatchUIFunctions.UpdateUI()
 end
@@ -68,6 +67,12 @@ end
 MatchUI.Full.Queue.MouseButton1Up:Connect(clickQueue)
 
 ReplicatedStorage:GetAttributeChangedSignal("PlayersInQueue"):Connect(MatchUIFunctions.UpdateUI)
+
+SetTeleportingStatusRE.OnClientEvent:Connect(function(newStatus)
+	MatchInterface.queueStatus = newStatus
+
+	MatchUIFunctions.UpdateUI()
+end)
 
 Players.PlayerRemoving:Connect(function(player)
 	if player ~= localPlayer then return end

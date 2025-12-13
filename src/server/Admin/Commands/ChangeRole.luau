@@ -26,9 +26,9 @@ return TextChatService.TextChatCommands.ChangeRole.Triggered:Connect(function(so
 
 	local role
 
-	for _, roleModule in ReplicatedStorage.Shared.Configs.Modes:GetChildren() do
+	for _, roleModule in ReplicatedStorage.Shared.Configs.Roles:GetChildren() do
 		if roleModule.Name:lower() == parameters[2]:lower() then
-			role = role.Name
+			role = roleModule.Name
 
 			break
 		end

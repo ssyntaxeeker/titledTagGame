@@ -34,6 +34,7 @@ TagRE.OnServerEvent:Connect(function(player, target)
 		local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
 		if not targetRootPart then return end
 		if targetHumanoid.Health <= 0 then return end
+		if targetCharacter:GetAttribute("Role") == "Dead" then return end
 
 		local durability = targetCharacter:GetAttribute("NTBDurability")
 
@@ -79,6 +80,8 @@ TagRE.OnServerEvent:Connect(function(player, target)
 			if targetHumanoid.Health <= 0 then
 				local playerProxy = Profiles.ReturnProxy(player)
 				playerProxy.Tags += 1
+
+				if workspace:GetAttribute("Gamemode") == "InfFFA" then character.Humanoid.Health = character.Humanoid.MaxHealth end
 
 				if ReplicatedStorage:GetAttribute("Ranked") then MatchmakingInterface.killedSignal:Fire(player) end
 			end

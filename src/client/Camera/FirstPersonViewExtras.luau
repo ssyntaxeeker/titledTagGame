@@ -47,11 +47,7 @@ local function setCanCollide(character)
 		if not table.find(CollideParts, part.Name) then
 			part.CanCollide = false
 		else
-			if character:GetAttribute("Vaulting") then
-				part.CanCollide = false
-			else
-				part.CanCollide = true
-			end
+			part.CanCollide = true
 		end
 	end
 end
@@ -63,16 +59,20 @@ end
 local function initCharacter(character)
 	if renderStepped then renderStepped:Disconnect() end
 
+	local humanoid = character:WaitForChild("Humanoid")
+
 	setMouseIcon()
 	setCanCollide(character)
 
-	character:WaitForChild("Humanoid").Died:Connect(function()
+	humanoid.HipHeight = -0.1
+
+	humanoid.Died:Connect(function()
 		if not renderStepped then return end
 		renderStepped:Disconnect()
 		renderStepped = nil
 	end)
 
-	renderStepped = RunService.RenderStepped:Connect(function()
+	renderStepped = RunService.PreRender:Connect(function()
 		if CameraModule.FirstPerson == true then
 			FirstPerson(character)
 		else

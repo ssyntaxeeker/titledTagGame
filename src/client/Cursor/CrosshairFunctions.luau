@@ -1,7 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 
 local Assets = ReplicatedStorage.Assets
 
@@ -26,10 +25,6 @@ function CrosshairFunctions.SetCooldown(time)
 		Size = UDim2.fromOffset(0, 0),
 		BackgroundTransparency = 0.75,
 	}):Play()
-end
-
-function CrosshairFunctions.ToggleDefaultMouse(bool)
-	UserInputService.MouseIconEnabled = bool
 end
 
 return CrosshairFunctions

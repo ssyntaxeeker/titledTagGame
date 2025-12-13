@@ -8,6 +8,7 @@ local function createGroups()
 	PhysicsService:RegisterCollisionGroup("Players")
 
 	PhysicsService:CollisionGroupSetCollidable("DeadPlayers", "Players", false)
+	PhysicsService:CollisionGroupSetCollidable("DeadPlayers", "DeadPlayers", false)
 	PhysicsService:CollisionGroupSetCollidable("DeadPlayers", "Default", true)
 end
 

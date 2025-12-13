@@ -6,7 +6,7 @@ local LeaderboardFunctions = require(script.Parent.LeaderboardFunctions)
 InputsManager.AddInput("ToggleLeaderboard", {
 	Keys = { Enum.KeyCode.Tab },
 	OnBegan = function()
-		LeaderboardFunctions.SetUIEnabled(true)
+		LeaderboardFunctions.ToggleListVisible()
 	end,
 })
 

@@ -50,7 +50,7 @@ function TagFunctions.Tag()
 
 	local rayNumber = 9
 	local circleRadius = 1
-	local rangeMultiplier = 1
+	local rangeMultiplier = character:GetAttribute("TagRangeMultiplier") or 1
 	local hits = {}
 	local visualsHit = {}
 	local visualsMiss = {}

@@ -3,6 +3,7 @@ local ServerStorage = game:GetService("ServerStorage")
 
 local ChangeMap = require(ServerStorage.Modules.Maps.ChangeMap)
 local ClockFunctions = require(ServerStorage.Modules.GameLogic.Clock.ClockFunctions)
+local ClockInterface = require(ServerStorage.Modules.GameLogic.Clock.ClockInterface)
 local Helpers = require(script.Parent.Helpers)
 local MatchmakingFunctions = require(ServerStorage.Modules.Matchmaking.MatchmakingFunctions)
 local MatchmakingInterface = require(ServerStorage.Modules.Matchmaking.MatchmakingInterface)
@@ -36,13 +37,15 @@ function ClassicRound.run(players, spawnPositions)
 
 	task.wait(4.5)
 
-	MatchmakingInterface.runnerTimes = {}
-
 	for _, player in players do
 		Helpers.setAnchored(player, false)
 	end
 
-	MatchmakingInterface.roundEndedSignal:Once(function(winners)
+	task.wait(1.5)
+
+	MatchmakingInterface.runnerTimes = {}
+
+	ClockInterface.roundEndedSignal:Once(function(winners)
 		for _, winner in winners do
 			MatchmakingFunctions.SetScore(winner, (MatchmakingInterface.scores[winner.UserId] or 0) + 0.25)
 		end
@@ -61,7 +64,8 @@ function ClassicRound.run(players, spawnPositions)
 			MatchmakingFunctions.SetScore(mostRunnerTimePlayer, (MatchmakingInterface.scores[mostRunnerTimePlayer.UserId] or 0) + 0.75)
 		end
 	end)
-	MatchmakingInterface.roundEndedSignal:Wait()
+
+	ClockInterface.roundEndedSignal:Wait()
 end
 
 return ClassicRound

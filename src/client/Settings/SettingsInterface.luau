@@ -10,6 +10,7 @@ return {
 		thirdPersonDistanceX = 0.7,
 		thirdPersonDistanceZ = 0.5,
 		cameraShake = false,
+		turn180OnFreeLook = false,
 	},
 	debug = {
 		showValues = true,
@@ -40,5 +41,8 @@ return {
 		roll = Enum.KeyCode.C,
 		toggleSettings = Enum.KeyCode.M,
 		toggleMatchmaking = Enum.KeyCode.N,
+	},
+	mobile = {
+		toggleLeaderboard = false,
 	},
 }
