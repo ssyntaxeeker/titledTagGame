@@ -25,7 +25,7 @@ function LandingInputs.StartSlide()
 
 	if humanoid.FloorMaterial == Enum.Material.Air then return end
 
-	if humanoid.MoveDirection.Magnitude > 0 and humanoid.WalkSpeed > 24 then
+	if humanoid.MoveDirection.Magnitude > 0 and humanoid.WalkSpeed > 24 and not character:GetAttribute("Rolling") then
 		if character:GetAttribute("Sliding") then
 			Slide.Stop()
 		else

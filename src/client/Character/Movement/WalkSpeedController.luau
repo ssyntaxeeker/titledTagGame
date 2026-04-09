@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local LeaningInterface = require(ReplicatedStorage.Modules.Character.Movement.Leaning.LeaningInterface)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 local Slide = require(ReplicatedStorage.Modules.Character.Parkour.Landing.Slide)
 
@@ -28,37 +29,38 @@ local function adjustWalkSpeed(character, dt)
 	local maxRunSpeed = character:GetAttribute("MaxRunSpeed") or 32
 	local acceleration = character:GetAttribute("AccelerationRate") or 20
 	local deceleration = character:GetAttribute("DecelerationRate") or 14
+
 	local momentumDecay = character:GetAttribute("MomentumDecay") or 0.0425
 	local frictionDecay = character:GetAttribute("FrictionDecay") or 0.06
 
 	local currentSpeed = humanoid.WalkSpeed
-	local targetSpeed = minRunSpeed
 	local floorMaterial = humanoid.FloorMaterial
 
-	if currentSpeed > 37 then
-		deceleration *= (5 / 6) * currentSpeed - 28.6667
+	local velocity = rootPart.AssemblyLinearVelocity
+	local localVelocity = rootPart.CFrame:VectorToObjectSpace(velocity)
+
+	local forwardSpeed = -localVelocity.Z
+
+	if velocity.Magnitude < 0.1 then
+		humanoid.WalkSpeed = minRunSpeed
+		return
 	end
 
-	local movementDirection = rootPart.CFrame:VectorToObjectSpace(rootPart.AssemblyLinearVelocity).Z / humanoid.WalkSpeed
-
-	if movementDirection < -0.05 or humanoid:GetState() == Enum.HumanoidStateType.Climbing or character:GetAttribute("Vaulting") == true then
-		if isSprinting(character) then
-			targetSpeed = maxRunSpeed
-		else
-			targetSpeed = minRunSpeed
-		end
-	else
-		if character:GetAttribute("Sliding") then Slide.Stop() end
-
-		targetSpeed = minRunSpeed
-		deceleration *= 23
+	if humanoid.WalkSpeed > maxRunSpeed then
+		deceleration /= 10
 	end
+
+	local isMovingForward = forwardSpeed > 1
+	local sprinting = isMovingForward and isSprinting(character)
+
+	local targetSpeed = sprinting and maxRunSpeed or minRunSpeed
 
 	local momentum = character:GetAttribute("Momentum") or 0
 	local friction = character:GetAttribute("Friction") or 0
 
-	local decay = if floorMaterial == Enum.Material.Air then momentumDecay * 0.78 else momentumDecay
-	local frictionLoss = if floorMaterial == Enum.Material.Air then frictionDecay * 1 else frictionDecay
+	local decay = (floorMaterial == Enum.Material.Air) and momentumDecay * 0.88 or momentumDecay
+
+	local frictionLoss = frictionDecay
 
 	momentum = math.clamp(momentum - decay * dt * 60, 0, 32)
 	friction = math.clamp(friction - frictionLoss * dt * 60, 0, 16)
@@ -67,7 +69,18 @@ local function adjustWalkSpeed(character, dt)
 	character:SetAttribute("Friction", friction)
 
 	if character:GetAttribute("Sliding") then
-		humanoid.WalkSpeed = math.max(minRunSpeed / 2, currentSpeed - deceleration * dt)
+		local forwardVector = rootPart.CFrame.LookVector
+		local slopeNormal = LeaningInterface.slopeTiltCFrame.UpVector
+
+		local slopeFactor = forwardVector:Dot(slopeNormal)
+		local speedAdjustment = slopeFactor * 20
+
+		local walkSpeed = math.clamp(humanoid.WalkSpeed + speedAdjustment * dt, minRunSpeed, maxRunSpeed * 1.5)
+
+		humanoid.WalkSpeed = forwardSpeed < 2 and minRunSpeed or walkSpeed
+
+		if humanoid.WalkSpeed <= minRunSpeed then Slide.Stop() end
+
 		return
 	end
 
@@ -76,16 +89,13 @@ local function adjustWalkSpeed(character, dt)
 		return
 	end
 
-	if humanoid.MoveDirection.Magnitude < 0.1 then
-		humanoid.WalkSpeed = minRunSpeed
-		return
+	if sprinting then
+		if forwardSpeed < targetSpeed * 0.6 then targetSpeed = maxRunSpeed end
 	end
 
-	local rate = if currentSpeed < targetSpeed then acceleration else deceleration
-	local momentumBoost = momentum * 0.5
-	local frictionPenalty = friction * 0.5
+	local rate = (currentSpeed < targetSpeed) and acceleration or deceleration
+	local finalTarget = math.clamp(targetSpeed + momentum - friction, minRunSpeed, maxRunSpeed)
 
-	local finalTarget = math.clamp(targetSpeed + momentumBoost - frictionPenalty, minRunSpeed, maxRunSpeed)
 	humanoid.WalkSpeed = math.min(44, currentSpeed + math.clamp(finalTarget - currentSpeed, -rate * dt, rate * dt))
 end
 

@@ -20,7 +20,7 @@ local function adjustJumpPower(character, dt)
 	local minJumpPower = character:GetAttribute("MinJumpPower") or 16
 	local maxJumpPower = character:GetAttribute("MaxJumpPower") or 28
 	local accelerationRate = character:GetAttribute("AccelerationRate") or 16
-	local decelerationRate = character:GetAttribute("DecelerationRate") or 2
+	local decelerationRate = character:GetAttribute("DecelerationRate") or 14
 
 	local movementDirection = rootPart.CFrame:VectorToObjectSpace(rootPart.AssemblyLinearVelocity).Z / humanoid.WalkSpeed
 

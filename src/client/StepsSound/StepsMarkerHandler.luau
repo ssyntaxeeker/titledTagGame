@@ -53,8 +53,8 @@ RunService.RenderStepped:Connect(function()
 	for _, player in Players:GetPlayers() do
 		local character = player.Character
 
-		if not character then return end
-		if not character:FindFirstChild("Humanoid") or not character:FindFirstChild("HumanoidRootPart") then return end
+		if not character then continue end
+		if not character:FindFirstChild("Humanoid") or not character:FindFirstChild("HumanoidRootPart") then continue end
 
 		character.HumanoidRootPart.Running.Volume = 0
 

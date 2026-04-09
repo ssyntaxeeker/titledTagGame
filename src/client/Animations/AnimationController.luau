@@ -32,7 +32,7 @@ local function getCharacterState(humanoid)
 	if moveDir.Magnitude > 0 then
 		if isCrouching then return "CrouchWalk" end
 
-		if humanoid.WalkSpeed > 23 then
+		if humanoid.WalkSpeed > 16 then
 			return "Run"
 		else
 			return "Walk"

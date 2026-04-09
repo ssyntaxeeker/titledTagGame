@@ -36,7 +36,7 @@ function RankedFunctions.StartRanked()
 	end
 
 	local crossroadsSpawnPositions = {
-		CFrame.new(Vector3.new(-1568.627, 140, 992.845)),
+		CFrame.new(Vector3.new(-1568.627, 162, 992.845)),
 		CFrame.new(Vector3.new(-1670.627, 159.75, 933.845)),
 	}
 

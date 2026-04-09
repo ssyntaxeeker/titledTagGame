@@ -36,7 +36,7 @@ return function(hitResult)
 	CooldownManager.modifyCooldown(localPlayer, "Swing", true, 0.45)
 
 	task.spawn(function()
-		swingAnimation:Play()
+		swingAnimation:Play(0.15, nil, 1.5)
 
 		PlaySound("Swing", rootPart)
 		PlaySoundRE:FireServer("Swing", rootPart)
@@ -58,27 +58,29 @@ return function(hitResult)
 	bodyPos.Parent = rootPart
 
 	local velocity = rootPart.AssemblyLinearVelocity
-	local swingFactor = (math.clamp(-velocity.Y, 25, 56) / 25) ^ 0.7
-
-	task.spawn(function()
-		local fmt = SettingsInterface.debug.numericalprecision and "%f" or "%.2f"
-		local out = string.format(fmt, swingFactor * 100)
-
-		DebugFunctions.Print(
-			`{out}% vps`,
-			Color3.fromHSV(
-				DebugConfig.DEBUG_SWING_COLOR[1],
-				DebugConfig.DEBUG_SWING_COLOR[2] + (swingFactor - 1 + 0.001) / 1.8 / 2,
-				DebugConfig.DEBUG_SWING_COLOR[3]
-			)
-		)
-	end)
+	local swingFactor = (math.clamp(-velocity.Y, 25, 80) / 25) ^ 0.7
 
 	local elapsed = 0
 
 	repeat
 		elapsed += task.wait()
 	until elapsed >= 0.4
+
+	task.spawn(function()
+		local fmt = SettingsInterface.debug.numericalprecision and "%f" or "%.2f"
+		local out = string.format(fmt, swingFactor * 100)
+
+		local colorFactor = (swingFactor - 1 + 0.001) / 1.8
+
+		DebugFunctions.Print(
+			`{out}% vps`,
+			Color3.fromHSV(
+				DebugConfig.DEBUG_SWING_COLOR[1] + colorFactor / 2,
+				DebugConfig.DEBUG_SWING_COLOR[2] + colorFactor,
+				DebugConfig.DEBUG_SWING_COLOR[3]
+			)
+		)
+	end)
 
 	if bodyPos then bodyPos:Destroy() end
 

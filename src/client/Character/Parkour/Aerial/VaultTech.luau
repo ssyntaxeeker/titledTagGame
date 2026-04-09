@@ -51,10 +51,10 @@ return function(studs, instance)
 		rootPart.AssemblyLinearVelocity.Z
 	) - rootPart.CFrame.LookVector * 2
 
-	if instance and (instance.Color == Color3.fromRGB(218, 133, 65) or instance.Color == Color3.fromRGB(248, 248, 248)) then return end
+	humanoid.WalkSpeed += 2
+	character:SetAttribute("Momentum", character:GetAttribute("Momentum") + 2)
 
-	local momentumAddition = 3 * (character:GetAttribute("VaultMomentumMultiplier") or 0.45)
-	character.Humanoid.WalkSpeed += momentumAddition
+	if instance and (instance.Color == Color3.fromRGB(218, 133, 65) or instance.Color == Color3.fromRGB(248, 248, 248)) then return end
 
 	task.delay(0.11, function()
 		character:SetAttribute("Vaulting", nil)

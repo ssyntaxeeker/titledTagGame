@@ -12,7 +12,7 @@ local function OnCharacterAdded(Character: Model)
 	task.spawn(function()
 		CharacterTable[Character.Name].LegController = IKModule.new(Character, {
 			ikEnabled = false,
-			tiltingEnabled = true,
+			tiltingEnabled = false,
 			ikExclude = {},
 			maxIkVelocity = 1.8,
 			onStates = {

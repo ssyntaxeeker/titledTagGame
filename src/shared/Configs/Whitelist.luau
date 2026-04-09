@@ -1,6 +1,9 @@
 return {
-	Admin = { "3693744006" },
-	Ranker = {
+	Admin = { "3693744006", "AstiDBZ", "vdogbark" },
+	Ranker = { "vdogbark" },
+	Playtester = { "vdogbark" },
+	ChatPerms = {},
+	--[[Ranker = {
 		"Kermit_4L",
 		"dinicoursavageplays",
 	},
@@ -102,6 +105,6 @@ return {
 		"Thebacon_Gamer25",
 		"Abyssal126",
 		"cost_ko",
-	},
+	},--]]
 	PrivateServerOwner = {},
 }

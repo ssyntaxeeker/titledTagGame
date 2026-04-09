@@ -7,12 +7,16 @@ local SoundAssets = ReplicatedStorage.Assets.Sounds
 
 local PlaySoundRE = Net:RemoteEvent("PlaySound")
 
+local random = Random.new()
+
 local function playSound(soundName, ...)
 	if soundName == "Vault" then
 		local rootPart, studs = unpack { ... }
 
 		local VaultSound = (studs < 2.25 and SoundAssets.NormalVault or SoundAssets.HighVault):Clone()
 		VaultSound.Parent = rootPart
+
+		VaultSound.PlaybackSpeed += random:NextNumber(-0.2, 0.2)
 		--VaultSound.Effect.Octave = 0.047 * studs + 0.97
 
 		VaultSound:Play()
@@ -45,6 +49,8 @@ local function playSound(soundName, ...)
 		local RollSound = SoundAssets[rollSoundName]:Clone()
 		RollSound.Parent = rootPart
 
+		RollSound.PlaybackSpeed += random:NextNumber(-0.1, 0.1)
+
 		RollSound:Play()
 		Debris:AddItem(RollSound, 0.7)
 	elseif soundName == "Swing" then
@@ -52,6 +58,8 @@ local function playSound(soundName, ...)
 
 		local SwingSound = SoundAssets.Swing:Clone()
 		SwingSound.Parent = rootPart
+
+		SwingSound.PlaybackSpeed += random:NextNumber(-0.1, 0.1)
 
 		SwingSound:Play()
 		Debris:AddItem(SwingSound, 1)
@@ -61,6 +69,8 @@ local function playSound(soundName, ...)
 		local BounceSound = SoundAssets.Trampoline[`Bounce{math.random(1, 3)}`]:Clone()
 		BounceSound.Parent = rootPart
 
+		BounceSound.PlaybackSpeed += random:NextNumber(-0.1, 0.1)
+
 		BounceSound:Play()
 		Debris:AddItem(BounceSound, 1)
 	elseif soundName == "Tag" then
@@ -69,6 +79,8 @@ local function playSound(soundName, ...)
 		local TagSound = SoundAssets.Tag:Clone()
 		TagSound.Parent = rootPart
 
+		TagSound.PlaybackSpeed += random:NextNumber(-0.1, 0.1)
+
 		TagSound:Play()
 		Debris:AddItem(TagSound, 1)
 	elseif soundName == "TagHit" then
@@ -76,6 +88,8 @@ local function playSound(soundName, ...)
 
 		local HitSound = SoundAssets.TagHit:Clone()
 		HitSound.Parent = part
+
+		HitSound.PlaybackSpeed += random:NextNumber(-0.2, 0.2)
 
 		HitSound:Play()
 		Debris:AddItem(HitSound, 1)
@@ -88,6 +102,8 @@ local function playSound(soundName, ...)
 		local TagSound = SoundAssets.NoTagBackHit:Clone()
 		TagSound.Parent = rootPart
 
+		TagSound.PlaybackSpeed += random:NextNumber(-0.2, 0.2)
+
 		TagSound:Play()
 		Debris:AddItem(TagSound, 1)
 	elseif soundName == "NTBHitBreak" then
@@ -95,6 +111,8 @@ local function playSound(soundName, ...)
 
 		local TagSound = SoundAssets.NoTagBackBreak:Clone()
 		TagSound.Parent = rootPart
+
+		TagSound.PlaybackSpeed += random:NextNumber(-0.2, 0.2)
 
 		TagSound:Play()
 		Debris:AddItem(TagSound, 1)

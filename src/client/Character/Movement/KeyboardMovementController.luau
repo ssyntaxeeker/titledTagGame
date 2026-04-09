@@ -91,13 +91,13 @@ local actions = {
 }
 
 local function bindActions()
-	for _, action in ipairs(actions) do
+	for _, action in actions do
 		ContextActionService:BindActionAtPriority(action[1], action[2], false, KeyboardController.ControlPriority, action[3])
 	end
 end
 
 local function unbindActions()
-	for _, action in ipairs(actions) do
+	for _, action in actions do
 		ContextActionService:UnbindAction(action[1])
 	end
 end

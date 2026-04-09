@@ -38,7 +38,7 @@ function DebugFunctions.Print(message, color)
 	newPrint.Text, newPrint.Name, newPrint.Visible, newPrint.LayoutOrder = message, "Print", true, 0
 
 	if color == "Rainbow" then
-		Assets.UI.Extra.Rainbow:Clone().Parent = newPrint
+		Assets.UI.Extra.RainbowBright:Clone().Parent = newPrint
 	elseif typeof(color) == "Color3" then
 		newPrint.TextColor3 = color
 	end

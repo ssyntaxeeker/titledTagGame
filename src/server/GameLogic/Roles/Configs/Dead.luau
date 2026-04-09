@@ -13,7 +13,7 @@ return RolesFunctions.RegisterRole("Dead", function(player)
 	character:SetAttribute("RollboostJumpPower", 33.6)
 
 	character:SetAttribute("AccelerationRate", 16)
-	character:SetAttribute("DecelerationRate", 1.4)
+	character:SetAttribute("DecelerationRate", 14)
 
-	character:SetAttribute("VaultMomentumMultiplier", 0.65)
+	character:SetAttribute("VaultMomentumMultiplier", 1)
 end)
