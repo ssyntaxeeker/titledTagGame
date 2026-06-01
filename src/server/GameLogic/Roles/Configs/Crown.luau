@@ -12,7 +12,7 @@ return RolesFunctions.RegisterRole("Crown", function(player)
 	character:SetAttribute("MaxJumpPower", 28)
 	character:SetAttribute("RollboostJumpPower", 35)
 
-	character:SetAttribute("AccelerationRate", 32)
+	character:SetAttribute("AccelerationRate", 20)
 	character:SetAttribute("DecelerationRate", 14)
 
 	character:SetAttribute("VaultMomentumMultiplier", 1)

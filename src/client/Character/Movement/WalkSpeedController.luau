@@ -27,7 +27,7 @@ local function adjustWalkSpeed(character, dt)
 
 	local minRunSpeed = character:GetAttribute("MinRunSpeed") or 16
 	local maxRunSpeed = character:GetAttribute("MaxRunSpeed") or 32
-	local acceleration = character:GetAttribute("AccelerationRate") or 20
+	local acceleration = character:GetAttribute("AccelerationRate") or 15
 	local deceleration = character:GetAttribute("DecelerationRate") or 14
 
 	local momentumDecay = character:GetAttribute("MomentumDecay") or 0.0425

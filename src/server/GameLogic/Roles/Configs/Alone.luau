@@ -12,7 +12,7 @@ return RolesFunctions.RegisterRole("Alone", function(player)
 	character:SetAttribute("MaxJumpPower", 28)
 	character:SetAttribute("RollboostJumpPower", 33.6)
 
-	character:SetAttribute("AccelerationRate", 16)
+	character:SetAttribute("AccelerationRate", 12)
 	character:SetAttribute("DecelerationRate", 14)
 
 	character:SetAttribute("VaultMomentumMultiplier", 1)

@@ -32,6 +32,6 @@ return CommandRegistry.RegisterCommand("rank", function(sender, rankedPlayer, ra
 
 	rankType = rankType == "ffa" and "Stars" or "Rank"
 
-	local proxy = Profiles.ReturnProxy(rankedPlayer)
+	local proxy = Profiles.ReturnProxy(rankedPlayerInstance)
 	proxy[rankType] = newRank
 end)

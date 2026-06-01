@@ -27,21 +27,23 @@ function AerialInputs.JumpRequest()
 	rayParams.FilterDescendantsInstances = { character, workspace.Debug }
 
 	local obstacleHit = nil
+	local lastOrigin = nil
+	local lastDirection = nil
 
-	for distance = 0.5, 2, 0.25 do
+	for distance = 2.5, 0.5, -0.25 do
 		if not obstacleHit then
 			local origin = rootPart.Position + rootPart.CFrame.LookVector * distance + Vector3.yAxis * 2.75
 			local direction = -Vector3.yAxis * 3.25
+
+			lastOrigin = origin
+			lastDirection = direction
 
 			obstacleHit = Workspace:Raycast(origin, direction, rayParams)
 		end
 	end
 
 	task.spawn(function()
-		DebugFunctions.VisualizeRaycast(
-			rootPart.Position + rootPart.CFrame.LookVector * 2 + rootPart.CFrame.UpVector * 2.75,
-			-rootPart.CFrame.UpVector * 3.25
-		)
+		DebugFunctions.VisualizeRaycast(lastOrigin, lastDirection)
 	end)
 
 	if obstacleHit then

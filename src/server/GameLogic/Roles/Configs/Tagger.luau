@@ -12,7 +12,7 @@ return RolesFunctions.RegisterRole("Tagger", function(player)
 	character:SetAttribute("MaxJumpPower", 28)
 	character:SetAttribute("RollboostJumpPower", 33.6)
 
-	character:SetAttribute("AccelerationRate", 24)
+	character:SetAttribute("AccelerationRate", 14)
 	character:SetAttribute("DecelerationRate", 13)
 
 	character:SetAttribute("VaultMomentumMultiplier", 1)

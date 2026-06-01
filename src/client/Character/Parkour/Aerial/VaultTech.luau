@@ -51,9 +51,10 @@ return function(studs, instance)
 		rootPart.AssemblyLinearVelocity.Z
 	) - rootPart.CFrame.LookVector * 2
 
-	humanoid.WalkSpeed += 2
-	character:SetAttribute("Momentum", character:GetAttribute("Momentum") + 2)
-
+	if not instance.Parent:FindFirstChildOfClass("TrussPart") then
+		humanoid.WalkSpeed += 2
+		character:SetAttribute("Momentum", character:GetAttribute("Momentum") + 2)
+	end
 	if instance and (instance.Color == Color3.fromRGB(218, 133, 65) or instance.Color == Color3.fromRGB(248, 248, 248)) then return end
 
 	task.delay(0.11, function()

@@ -20,7 +20,7 @@ local function playSound(soundName, ...)
 		--VaultSound.Effect.Octave = 0.047 * studs + 0.97
 
 		VaultSound:Play()
-		Debris:AddItem(VaultSound, 0.5)
+		Debris:AddItem(VaultSound, VaultSound.TimeLength + 0.1)
 	elseif soundName == "Land" then
 		local rootPart, ALVelocityY = unpack { ... }
 
@@ -30,7 +30,7 @@ local function playSound(soundName, ...)
 		LandSound.PlaybackSpeed = ALVelocityY * -0.025
 
 		LandSound:Play()
-		Debris:AddItem(LandSound, 0.7)
+		Debris:AddItem(LandSound, LandSound.TimeLength + 0.1)
 	elseif soundName == "Roll" then
 		local rootPart, ms = unpack { ... }
 
@@ -41,9 +41,9 @@ local function playSound(soundName, ...)
 		elseif ms > 100 then
 			rollSoundName = "normalroll"
 		elseif ms > 10 then
-			rollSoundName = "quickroll"
+			rollSoundName = "GoodRoll"
 		else
-			rollSoundName = "perfectroll"
+			rollSoundName = "PerfectRoll"
 		end
 
 		local RollSound = SoundAssets[rollSoundName]:Clone()
@@ -52,7 +52,7 @@ local function playSound(soundName, ...)
 		RollSound.PlaybackSpeed += random:NextNumber(-0.1, 0.1)
 
 		RollSound:Play()
-		Debris:AddItem(RollSound, 0.7)
+		Debris:AddItem(RollSound, RollSound.TimeLength + 0.1)
 	elseif soundName == "Swing" then
 		local rootPart = unpack { ... }
 
@@ -62,7 +62,7 @@ local function playSound(soundName, ...)
 		SwingSound.PlaybackSpeed += random:NextNumber(-0.1, 0.1)
 
 		SwingSound:Play()
-		Debris:AddItem(SwingSound, 1)
+		Debris:AddItem(SwingSound, SwingSound.TimeLength + 0.1)
 	elseif soundName == "Trampoline" then
 		local rootPart = unpack { ... }
 
@@ -72,7 +72,7 @@ local function playSound(soundName, ...)
 		BounceSound.PlaybackSpeed += random:NextNumber(-0.1, 0.1)
 
 		BounceSound:Play()
-		Debris:AddItem(BounceSound, 1)
+		Debris:AddItem(BounceSound, BounceSound.TimeLength + 0.1)
 	elseif soundName == "Tag" then
 		local rootPart = unpack { ... }
 
@@ -82,7 +82,7 @@ local function playSound(soundName, ...)
 		TagSound.PlaybackSpeed += random:NextNumber(-0.1, 0.1)
 
 		TagSound:Play()
-		Debris:AddItem(TagSound, 1)
+		Debris:AddItem(TagSound, TagSound.TimeLength + 0.1)
 	elseif soundName == "TagHit" then
 		local part = unpack { ... }
 
@@ -92,7 +92,7 @@ local function playSound(soundName, ...)
 		HitSound.PlaybackSpeed += random:NextNumber(-0.2, 0.2)
 
 		HitSound:Play()
-		Debris:AddItem(HitSound, 1)
+		Debris:AddItem(HitSound, HitSound.TimeLength + 0.1)
 	elseif soundName == "RoleChange" then
 		local RoleSound = SoundAssets.RoleChange
 		RoleSound:Play()
@@ -105,7 +105,7 @@ local function playSound(soundName, ...)
 		TagSound.PlaybackSpeed += random:NextNumber(-0.2, 0.2)
 
 		TagSound:Play()
-		Debris:AddItem(TagSound, 1)
+		Debris:AddItem(TagSound, TagSound.TimeLength + 0.1)
 	elseif soundName == "NTBHitBreak" then
 		local rootPart = unpack { ... }
 
@@ -115,7 +115,7 @@ local function playSound(soundName, ...)
 		TagSound.PlaybackSpeed += random:NextNumber(-0.2, 0.2)
 
 		TagSound:Play()
-		Debris:AddItem(TagSound, 1)
+		Debris:AddItem(TagSound, TagSound.TimeLength + 0.1)
 	end
 end
 

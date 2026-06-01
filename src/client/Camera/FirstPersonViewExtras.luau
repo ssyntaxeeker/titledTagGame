@@ -10,7 +10,7 @@ local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInt
 local localPlayer = Players.LocalPlayer
 
 local viewableParts = { "Left Arm", "Right Arm", "Left Leg", "Right Leg" }
-local CollideParts = { "Head", "Torso", "Left Leg", "Right Leg" }
+local CollideParts = { "Torso", "Left Leg", "Right Leg" }
 
 local renderStepped
 
