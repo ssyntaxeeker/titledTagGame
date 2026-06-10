@@ -4,8 +4,10 @@ local StarterGui = game:GetService("StarterGui")
 
 local LeaderboardFunctions = require(ReplicatedStorage.Modules.Leaderboard.LeaderboardFunctions)
 local RankColors = require(ReplicatedStorage.Shared.Configs.RankColors)
+local RankImages = require(ReplicatedStorage.Shared.Configs.RankImages)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 local StarsColors = require(ReplicatedStorage.Shared.Configs.StarsColors)
+local StarsImages = require(ReplicatedStorage.Shared.Configs.StarsImages)
 
 local _, ScrollFrame = LeaderboardFunctions.GetUI()
 local UIListLayout = ScrollFrame:WaitForChild("UIListLayout")
@@ -92,12 +94,24 @@ local function updateRow(player)
 	row.username.Text = player.DisplayName or player.Name
 
 	local stars = tonumber(player:GetAttribute("Stars"))
-	row.Stats.stars.starsText.Text = stars or 0
-	row.Stats.stars.ImageColor3 = StarsColors[math.floor(stars or 0)] or StarsColors[1]
+	if StarsImages[stars] then
+		row.Stats.stars.Image = StarsImages[stars]
+		row.Stats.stars.Visible = true
+	else
+		row.Stats.stars.Visible = false
+	end
+	--row.Stats.stars.starsText.Text = stars or 0
+	--row.Stats.stars.ImageColor3 = StarsColors[math.floor(stars or 0)] or StarsColors[1]
 
 	local rank = player:GetAttribute("Rank")
-	row.Stats.rank.rankText.Text = rank or "C"
-	row.Stats.rank.ImageColor3 = RankColors[rank] or RankColors["C"]
+	if RankImages[rank] then
+		row.Stats.rank.Image = RankImages[rank]
+		row.Stats.rank.Visible = true
+	else
+		row.Stats.rank.Visible = false
+	end
+	--row.Stats.rank.rankText.Text = rank or "C"
+	--row.Stats.rank.ImageColor3 = RankColors[rank] or RankColors["C"]
 
 	row.Stats.tags.Text = tostring(player:GetAttribute("Tags") or 0)
 	row.Stats.elo.Text = tostring(player:GetAttribute("ELO") or 0)

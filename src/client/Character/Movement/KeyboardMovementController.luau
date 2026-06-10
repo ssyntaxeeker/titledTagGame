@@ -27,8 +27,6 @@ local inputValues = {
 local jumpRequested = false
 
 local function updateMovement(state)
-	if MovementInterface.LockMoveVector == true then return end
-
 	if state == Enum.UserInputState.Cancel then
 		MovementInterface.MoveVector = ZERO_VECTOR3
 	else
@@ -46,7 +44,12 @@ end
 
 local function setInput(direction, axis, value)
 	inputValues[direction] = (axis == Enum.UserInputState.Begin) and value or 0
+
+	local character = localPlayer.Character
+	if character then character:SetAttribute("ForwardHeld", inputValues.Forward > 0) end
+
 	updateMovement(axis)
+
 	return Enum.ContextActionResult.Pass
 end
 
@@ -127,8 +130,13 @@ local function onRenderStepped()
 	if humanoid.FloorMaterial == Enum.Material.Air and character:GetAttribute("Sliding") then Slide.Stop() end
 
 	if move ~= ZERO_VECTOR3 then
-		local moveDir = (root.CFrame.RightVector * move.X) + (root.CFrame.LookVector * move.Z)
-		localPlayer:Move(moveDir, false)
+		if MovementInterface.LockMoveVector then
+			localPlayer:Move(MovementInterface.LockedMoveDirection, false)
+		else
+			local moveDir = (root.CFrame.RightVector * move.X) + (root.CFrame.LookVector * move.Z)
+
+			localPlayer:Move(moveDir, false)
+		end
 	else
 		localPlayer:Move(ZERO_VECTOR3, false)
 	end

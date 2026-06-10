@@ -1,125 +1,197 @@
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-local LeaningInterface = require(ReplicatedStorage.Modules.Character.Movement.Leaning.LeaningInterface)
-local Schedules = require(ReplicatedStorage.Shared.Schedules)
-local Slide = require(ReplicatedStorage.Modules.Character.Parkour.Landing.Slide)
+local LeaningInterface = require(game.ReplicatedStorage.Modules.Character.Movement.Leaning.LeaningInterface)
+local Schedules = require(game.ReplicatedStorage.Shared.Schedules)
+local Slide = require(game.ReplicatedStorage.Modules.Character.Parkour.Landing.Slide)
 
 local localPlayer = Players.LocalPlayer
-local renderStepped
+local connection
 
-local function isSprinting(character)
+local function wantsSprint(character)
 	return not UserInputService:IsKeyDown(Enum.KeyCode.LeftShift)
-		and not character:GetAttribute("Crouching")
 		and not character:GetAttribute("Sliding")
+		and not character:GetAttribute("Crouching")
 end
 
 local function adjustWalkSpeed(character, dt)
 	local humanoid = character:FindFirstChild("Humanoid")
-	if not humanoid then return end
-
 	local rootPart = character:FindFirstChild("HumanoidRootPart")
-	if not rootPart then return end
+
+	if not humanoid or not rootPart then return end
 
 	if character:GetAttribute("Rolling") then return end
 
-	local minRunSpeed = character:GetAttribute("MinRunSpeed") or 16
-	local maxRunSpeed = character:GetAttribute("MaxRunSpeed") or 32
-	local acceleration = character:GetAttribute("AccelerationRate") or 15
-	local deceleration = character:GetAttribute("DecelerationRate") or 14
+	local dt60 = math.min(dt, 1) * 60
 
-	local momentumDecay = character:GetAttribute("MomentumDecay") or 0.0425
-	local frictionDecay = character:GetAttribute("FrictionDecay") or 0.06
+	--------------------------------------------------
+	-- BASE SPEEDS (matches utg)
+	--------------------------------------------------
 
-	local currentSpeed = humanoid.WalkSpeed
-	local floorMaterial = humanoid.FloorMaterial
+	local crouchSpeed = 8
+	local runSpeed = character:GetAttribute("MinRunSpeed") or 16
+	local sprintSpeed = character:GetAttribute("MaxRunSpeed") or 32
 
-	local velocity = rootPart.AssemblyLinearVelocity
-	local localVelocity = rootPart.CFrame:VectorToObjectSpace(velocity)
+	--------------------------------------------------
+	-- SLIDE
+	--------------------------------------------------
 
-	local forwardSpeed = -localVelocity.Z
+	if character:GetAttribute("Sliding") then
+		local slopeCF = LeaningInterface.slopeTiltCFrame
 
-	if velocity.Magnitude < 0.1 then
-		humanoid.WalkSpeed = minRunSpeed
+		if slopeCF then
+			local forward = rootPart.CFrame.LookVector
+			local normal = slopeCF.UpVector
+
+			local slopeTilt = -forward:Dot(normal)
+
+			humanoid.WalkSpeed += slopeTilt * dt60 * 0.35
+		end
+
+		humanoid.WalkSpeed = math.clamp(humanoid.WalkSpeed, runSpeed, sprintSpeed * 2)
+
+		if humanoid.WalkSpeed < 17 then
+			Slide.Stop()
+			humanoid.WalkSpeed = runSpeed
+		end
+
 		return
 	end
 
-	if humanoid.WalkSpeed > maxRunSpeed then
-		deceleration /= 10
+	local crouching = character:GetAttribute("Crouching")
+	local sprintHeld = wantsSprint(character)
+	local forwardHeld = character:GetAttribute("ForwardHeld")
+
+	if crouching then
+		humanoid.WalkSpeed = crouchSpeed
+		return
 	end
 
-	local isMovingForward = forwardSpeed > 1
-	local sprinting = isMovingForward and isSprinting(character)
+	if not sprintHeld or not forwardHeld then
+		humanoid.WalkSpeed = math.max(runSpeed, humanoid.WalkSpeed - dt60 * 0.5)
+		return
+	end
 
-	local targetSpeed = sprinting and maxRunSpeed or minRunSpeed
+	--------------------------------------------------
+	-- MOMENTUM / FRICTION
+	--------------------------------------------------
 
 	local momentum = character:GetAttribute("Momentum") or 0
 	local friction = character:GetAttribute("Friction") or 0
 
-	local decay = (floorMaterial == Enum.Material.Air) and momentumDecay * 0.88 or momentumDecay
+	local floorMaterial = humanoid.FloorMaterial
+	local airborne = floorMaterial == Enum.Material.Air
 
-	local frictionLoss = frictionDecay
+	local momentumDecay = airborne and 0.0375 or 0.0425
+	local frictionDecay = airborne and 0.06 or 0.06
 
-	momentum = math.clamp(momentum - decay * dt * 60, 0, 32)
-	friction = math.clamp(friction - frictionLoss * dt * 60, 0, 16)
+	momentum = math.clamp(momentum - momentumDecay * dt60, 0, 32)
+
+	friction = math.clamp(friction - frictionDecay * dt60, 0, 16)
 
 	character:SetAttribute("Momentum", momentum)
 	character:SetAttribute("Friction", friction)
 
-	if character:GetAttribute("Sliding") then
-		local forwardVector = rootPart.CFrame.LookVector
-		local slopeNormal = LeaningInterface.slopeTiltCFrame.UpVector
+	--------------------------------------------------
+	-- APPLY MOMENTUM TO SPEED TIERS
+	--------------------------------------------------
 
-		local slopeFactor = forwardVector:Dot(slopeNormal)
-		local speedAdjustment = slopeFactor * 20
+	local momentumBonus = momentum
+	local frictionPenalty = friction
 
-		local walkSpeed = math.clamp(humanoid.WalkSpeed + speedAdjustment * dt, minRunSpeed, maxRunSpeed * 1.5)
+	crouchSpeed += momentumBonus
+	runSpeed += momentumBonus
+	sprintSpeed += momentumBonus
 
-		humanoid.WalkSpeed = forwardSpeed < 2 and minRunSpeed or walkSpeed
+	crouchSpeed -= frictionPenalty
+	runSpeed -= frictionPenalty
+	sprintSpeed -= frictionPenalty
 
-		if humanoid.WalkSpeed <= minRunSpeed then Slide.Stop() end
+	--------------------------------------------------
+	-- MOVEMENT INPUT
+	--------------------------------------------------
 
-		return
+	local moveDirection = humanoid.MoveDirection
+	local moving = moveDirection.Magnitude > 0.1
+
+	local sprinting = character:GetAttribute("ForwardHeld") and moving and wantsSprint(character) and not crouching
+
+	--------------------------------------------------
+	-- CROUCH
+	--------------------------------------------------
+
+	if crouching then
+		runSpeed = crouchSpeed
+		sprintSpeed = crouchSpeed
 	end
 
-	if character:GetAttribute("Crouching") then
-		humanoid.WalkSpeed = minRunSpeed / 1.8
-		return
+	--------------------------------------------------
+	-- ACCELERATION MODEL
+	--------------------------------------------------
+
+	local minSpeed = runSpeed
+	local maxSpeed = runSpeed
+
+	if sprinting then maxSpeed = sprintSpeed end
+
+	local accel = dt60 * 0.2
+
+	if airborne then
+		if sprinting then
+			minSpeed = runSpeed
+			maxSpeed = sprintSpeed
+		end
+	else
+		if sprinting or humanoid.WalkSpeed > runSpeed then
+			minSpeed = runSpeed
+			maxSpeed = sprintSpeed
+		end
 	end
 
-	if sprinting then
-		if forwardSpeed < targetSpeed * 0.6 then targetSpeed = maxRunSpeed end
+	humanoid.WalkSpeed = math.clamp(humanoid.WalkSpeed + accel, minSpeed, maxSpeed)
+
+	--------------------------------------------------
+	-- NO INPUT
+	--------------------------------------------------
+
+	if not moving then
+		if not airborne then humanoid.WalkSpeed = runSpeed end
 	end
 
-	local rate = (currentSpeed < targetSpeed) and acceleration or deceleration
-	local finalTarget = math.clamp(targetSpeed + momentum - friction, minRunSpeed, maxRunSpeed)
+	--------------------------------------------------
+	-- MOMENTUM RESET
+	--------------------------------------------------
 
-	humanoid.WalkSpeed = math.min(44, currentSpeed + math.clamp(finalTarget - currentSpeed, -rate * dt, rate * dt))
+	local horizontalVelocity = Vector2.new(rootPart.AssemblyLinearVelocity.X, rootPart.AssemblyLinearVelocity.Z).Magnitude
+
+	if horizontalVelocity < 6.8 then character:SetAttribute("Momentum", 0) end
+	if horizontalVelocity < runSpeed and character:GetAttribute("Sliding") then Slide.Stop() end
 end
 
 local function initCharacter(character)
-	if renderStepped then renderStepped:Disconnect() end
-
-	local humanoid = character:WaitForChild("Humanoid")
-	humanoid.Died:Connect(function()
-		if renderStepped then
-			renderStepped:Disconnect()
-			renderStepped = nil
-		end
-	end)
+	if connection then connection:Disconnect() end
 
 	character:SetAttribute("Momentum", 0)
 	character:SetAttribute("Friction", 0)
 
-	renderStepped = RunService.Heartbeat:Connect(function(dt)
+	local humanoid = character:WaitForChild("Humanoid")
+
+	humanoid.Died:Connect(function()
+		if connection then
+			connection:Disconnect()
+			connection = nil
+		end
+	end)
+
+	connection = RunService.Heartbeat:Connect(function(dt)
 		adjustWalkSpeed(character, dt)
 	end)
 end
 
 local function handleConnections()
 	localPlayer.CharacterAdded:Connect(initCharacter)
+
 	if localPlayer.Character then initCharacter(localPlayer.Character) end
 end
 

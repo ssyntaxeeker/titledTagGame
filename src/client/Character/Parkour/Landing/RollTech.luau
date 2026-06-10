@@ -6,6 +6,7 @@ local CameraShake = require(ReplicatedStorage.Modules.Camera.CameraShake)
 local CooldownManager = require(ReplicatedStorage.Vendor.CooldownManager)
 local DebugConfig = require(ReplicatedStorage.Modules.Debug.DebugConfig)
 local DebugFunctions = require(ReplicatedStorage.Modules.Debug.DebugFunctions)
+local MovementInterface = require(ReplicatedStorage.Modules.Character.Movement.MovementInterface)
 local Net = require(ReplicatedStorage.Packages.Net)
 local PlaySound = require(ReplicatedStorage.Modules.FX.PlaySound)
 local RollInterface = require(ReplicatedStorage.Modules.Character.Parkour.Landing.RollInterface)
@@ -30,37 +31,29 @@ local function roll(character, ms)
 	CooldownManager.modifyCooldown(localPlayer, "Roll", true, 0.05)
 
 	local humanoid = character.Humanoid
-	local walkSpeed = math.clamp(-0.1344 * ms + 55.378, 39, 56)
+	local rootPart = character.HumanoidRootPart
+
+	local seconds = ms / 1000
+	local perfect = seconds < 0.1
+
+	local speedMult = perfect and (1.3 + ((0.1 - seconds) * 3.5) ^ 0.85) or 1.3
 
 	if not character:GetAttribute("Rolling") then previousWalkSpeed = humanoid.WalkSpeed end
 
+	MovementInterface.LockedMoveDirection = (rootPart.CFrame.RightVector * MovementInterface.MoveVector.X)
+		+ (rootPart.CFrame.LookVector * MovementInterface.MoveVector.Z)
+	MovementInterface.LockMoveVector = true
+
 	RollInterface.lastPressed = nil
 	rollIndex += 1
-	humanoid.WalkSpeed = walkSpeed
 
-	local rollAnimation = AnimationManager.GetTrack(humanoid.Animator, Assets.Animations.Parkour.Roll)
 	local currentRollIndex = rollIndex
 
-	local rollboostTiming = 1.3 + ((0.1 - ms / 1000) * 3.5) ^ 0.85 / (ms > 100 and 1 or 1.4)
-	if rollboostTiming ~= rollboostTiming then
-		rollboostTiming = 0.5
-	else
-		rollboostTiming = math.clamp(rollboostTiming, 0.5, 2.5)
-	end
+	character:SetAttribute("Rolling", true)
 
-	task.delay(math.clamp(rollboostTiming / 10, 0.05, 1), function()
-		humanoid.JumpPower = character:GetAttribute("RollboostJumpPower") or 33.6
+	humanoid.WalkSpeed *= speedMult
 
-		task.delay(0.3, function()
-			if currentRollIndex ~= rollIndex then return end
-
-			character:SetAttribute("Rolling", false)
-			humanoid.WalkSpeed = previousWalkSpeed
-			humanoid.JumpPower = character:GetAttribute("MaxJumpPower") or 28
-		end)
-	end)
-
-	local rootPart = character.HumanoidRootPart
+	local rollAnimation = AnimationManager.GetTrack(humanoid.Animator, Assets.Animations.Parkour.Roll)
 
 	task.spawn(function()
 		local fmt = SettingsInterface.debug.numericalprecision and "%f" or "%.2f"
@@ -68,15 +61,35 @@ local function roll(character, ms)
 
 		DebugFunctions.Print(
 			`{out} ms`,
-			(ms < 8 and "Rainbow") or (ms < 100 and DebugConfig.DEBUG_PERFECT_ROLL_COLOR) or DebugConfig.DEBUG_NORMAL_ROLL_COLOR
+			(ms <= 10 and "Rainbow") or (perfect and DebugConfig.DEBUG_PERFECT_ROLL_COLOR) or DebugConfig.DEBUG_NORMAL_ROLL_COLOR
 		)
 	end)
 
-	character:SetAttribute("Rolling", true)
 	PlaySound("Roll", rootPart, ms)
 	PlaySoundRE:FireServer("Roll", rootPart, ms)
+
 	rollAnimation:Play()
-	rollAnimation:AdjustSpeed(ms > 100 and 1 or 1.4)
+	rollAnimation:AdjustSpeed(perfect and speedMult or 1)
+
+	if perfect then
+		PlaySound("PerfectRoll", rootPart, ms)
+		PlaySoundRE:FireServer("PerfectRoll", rootPart, ms)
+	end
+
+	task.delay(0.15, function()
+		if currentRollIndex ~= rollIndex then return end
+
+		humanoid.JumpPower *= 1.3
+		MovementInterface.LockMoveVector = false
+
+		task.delay(perfect and 0.2 or 0.35, function()
+			if currentRollIndex ~= rollIndex then return end
+
+			character:SetAttribute("Rolling", false)
+			humanoid.WalkSpeed = previousWalkSpeed
+			humanoid.JumpPower = character:GetAttribute("MaxJumpPower") or 28
+		end)
+	end)
 end
 
 local function setupConnections(character)
