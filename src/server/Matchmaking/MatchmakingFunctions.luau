@@ -43,7 +43,11 @@ function MatchmakingFunctions.CreateMatch(playerA, playerB)
 
 	local serverCode = TeleportService:ReserveServer(game.PlaceId)
 
-	TeleportService:TeleportToPrivateServer(game.PlaceId, serverCode, { playerA, playerB }, nil, { Ranked = true })
+	TeleportService:TeleportToPrivateServer(game.PlaceId, serverCode, { playerA, playerB }, nil, {
+		Ranked = true,
+		RankedVersion = 1,
+		Participants = { playerA.UserId, playerB.UserId },
+	})
 end
 
 function MatchmakingFunctions.TryMatchPlayers()
@@ -96,20 +100,26 @@ function MatchmakingFunctions.SetScore(player, score)
 	UpdateClientScoresRE:FireAllClients(MatchmakingInterface.scores)
 end
 
-function MatchmakingFunctions.GiveElo(player, opponent, result, K)
+function MatchmakingFunctions.GiveHeadToHeadElo(playerA, playerB, resultA, K)
 	K = K or 32
-	local playerProxy = Profiles.ReturnProxy(player)
-	local opponentProxy = Profiles.ReturnProxy(opponent)
+	assert(resultA >= 0 and resultA <= 1, "[MatchmakingFunctions.GiveHeadToHeadElo] resultA must be within 0..1")
+	local proxyA = Profiles.ReturnProxy(playerA)
+	local proxyB = Profiles.ReturnProxy(playerB)
+	assert(proxyA, `[MatchmakingFunctions.GiveHeadToHeadElo] {playerA.Name} has no profile`)
+	assert(proxyB, `[MatchmakingFunctions.GiveHeadToHeadElo] {playerB.Name} has no profile`)
 
-	local playerElo = playerProxy.ELO
-	local opponentElo = opponentProxy.ELO
-
-	local expected = 1 / (1 + 10 ^ ((opponentElo - playerElo) / 400))
-	local actual = result
-
-	local change = math.floor(K * (actual - expected) + 0.5)
-
-	playerProxy.ELO = playerElo + change
+	local eloA = tonumber(proxyA.ELO)
+	local eloB = tonumber(proxyB.ELO)
+	assert(eloA and eloB, "[MatchmakingFunctions.GiveHeadToHeadElo] both players require numeric ELO")
+	local expectedA = 1 / (1 + 10 ^ ((eloB - eloA) / 400))
+	local rawDelta = K * (resultA - expectedA)
+	local deltaA = if rawDelta >= 0 then math.floor(rawDelta + 0.5) else math.ceil(rawDelta - 0.5)
+	local deltaB = -deltaA
+	proxyA.ELO = eloA + deltaA
+	proxyB.ELO = eloB + deltaB
+	playerA:SetAttribute("RankedRatingDelta", deltaA)
+	playerB:SetAttribute("RankedRatingDelta", deltaB)
+	return deltaA, deltaB
 end
 
 return MatchmakingFunctions

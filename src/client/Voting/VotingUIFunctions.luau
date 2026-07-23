@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local BrightenColor = require(ReplicatedStorage.Vendor.BrightenColor)
+local MouseVisibilityService = require(ReplicatedStorage.Modules.Cursor.MouseVisibilityService)
 local Net = require(ReplicatedStorage.Packages.Net)
 
 local Assets = ReplicatedStorage.Assets
@@ -13,6 +14,7 @@ local localPlayer = Players.LocalPlayer
 
 local VotingUI = Assets.UI.VotingUI:Clone()
 VotingUI.Parent = localPlayer:WaitForChild("PlayerGui")
+VotingUI.Enabled = false
 
 local showCardTweenInfo = TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 local hideCardTweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In)
@@ -22,6 +24,8 @@ local clickChangeTweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.Easi
 local VotingUIFunctions = {}
 
 local lastClickedFrame
+local activeRoundId = 0
+local activeVoteType = "mode"
 
 local function makeColorSequence(colors)
 	local sequence = {}
@@ -61,6 +65,42 @@ function VotingUIFunctions.GetUI()
 	return VotingUI
 end
 
+function VotingUIFunctions.BeginSession(roundId, voteType)
+	activeRoundId = roundId
+	activeVoteType = voteType or "mode"
+	lastClickedFrame = nil
+	VotingUI.HideVoting.Visible = false
+	for _, frame in VotingUI.Frames:GetChildren() do
+		if frame:IsA("Frame") then frame:Destroy() end
+	end
+end
+
+function VotingUIFunctions.IsSession(roundId)
+	return activeRoundId == roundId
+end
+
+function VotingUIFunctions.EndSession(roundId)
+	if activeRoundId ~= roundId then return false end
+	activeRoundId = 0
+	lastClickedFrame = nil
+	VotingUI.HideVoting.Visible = false
+	VotingUIFunctions.SetActive(false)
+	for _, frame in VotingUI.Frames:GetChildren() do
+		if frame:IsA("Frame") then frame:Destroy() end
+	end
+	return true
+end
+
+function VotingUIFunctions.SetActive(active)
+	if active then
+		MouseVisibilityService.setVisible(VotingUI, true)
+		VotingUI.Enabled = true
+	else
+		VotingUI.Enabled = false
+		MouseVisibilityService.setVisible(VotingUI, false)
+	end
+end
+
 function VotingUIFunctions.ShowFrame(frame)
 	TweenService:Create(frame.Main, showCardTweenInfo, { Position = UDim2.fromScale(0.5, 0.5), Rotation = math.random(-1.5, 1.5) }):Play()
 
@@ -75,9 +115,7 @@ function VotingUIFunctions.HideFrame(frame)
 	tween.Completed:Connect(function(tweenStatus)
 		if tweenStatus ~= Enum.PlaybackState.Completed then return end
 
-		task.delay(2, function()
-			frame:Destroy()
-		end)
+		frame:Destroy()
 
 		tween:Destroy()
 	end)
@@ -87,10 +125,13 @@ end
 
 function VotingUIFunctions.UpdateVotes(votesList)
 	for modeName, amount in votesList do
-		local modeConfig = require(ReplicatedStorage.Shared.Configs.Modes[modeName])
-
-		local frame = VotingUI.Frames:FindFirstChild(modeConfig.Name)
-		if not frame then return end
+		local frameName = modeName
+		if activeVoteType == "mode" then
+			local modeConfig = require(ReplicatedStorage.Shared.Configs.Modes[modeName])
+			frameName = modeConfig.Name
+		end
+		local frame = VotingUI.Frames:FindFirstChild(frameName)
+		if not frame then continue end
 
 		frame.Main.VotesAmount.Text = amount
 	end
@@ -140,13 +181,8 @@ end
 
 VotingUI.HideVoting.MouseButton1Click:Connect(function()
 	VotingUI.HideVoting.Visible = false
+	VotingUIFunctions.SetActive(false)
 
-	for _, frame in VotingUI.Frames:GetChildren() do
-		if not frame:IsA("Frame") then continue end
-
-		VotingUIFunctions.HideFrame(frame)
-		task.wait(0.2)
-	end
 end)
 
 return VotingUIFunctions

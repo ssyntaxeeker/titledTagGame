@@ -22,6 +22,7 @@ function LeaningFunctions.UpdateSlopeTilt(character)
 
 	if humanoid.FloorMaterial == Enum.Material.Air then
 		LeaningInterface.slopeTiltCFrame = CFrame.new()
+		LeaningInterface.slopeTilt = nil
 		return
 	end
 
@@ -33,12 +34,14 @@ function LeaningFunctions.UpdateSlopeTilt(character)
 
 	if not forwardRay or not forwardRay.Instance.CanCollide then
 		LeaningInterface.slopeTiltCFrame = CFrame.new()
+		LeaningInterface.slopeTilt = nil
 		return
 	end
 
 	-- Ignore flat ground
 	if math.abs(forwardRay.Normal.Y) >= 0.98 then
 		LeaningInterface.slopeTiltCFrame = CFrame.new()
+		LeaningInterface.slopeTilt = nil
 		return
 	end
 
@@ -46,10 +49,12 @@ function LeaningFunctions.UpdateSlopeTilt(character)
 
 	if not backRay or not backRay.Instance.CanCollide then
 		LeaningInterface.slopeTiltCFrame = CFrame.new()
+		LeaningInterface.slopeTilt = nil
 		return
 	end
 
 	local pitch = select(1, CFrame.lookAt(backRay.Position, forwardRay.Position):ToOrientation())
+	LeaningInterface.slopeTilt = pitch
 
 	if character:GetAttribute("Sliding") then
 		LeaningInterface.slopeTiltCFrame = CFrame.Angles(pitch, 0, 0)

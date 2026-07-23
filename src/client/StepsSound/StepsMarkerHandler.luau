@@ -25,6 +25,7 @@ local function step(character)
 	local humanoidRootPart = character.HumanoidRootPart
 
 	local FloorMaterial = humanoid.FloorMaterial
+	if FloorMaterial == Enum.Material.Air then return end
 
 	local stepSoundMaterial = SteppingSounds[FloorMaterial] or SteppingSounds.Default
 

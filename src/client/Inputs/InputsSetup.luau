@@ -23,6 +23,11 @@ local inputFunctions: { [Enum.UserInputState]: ((() -> ())?, (() -> ())?, (() ->
 
 		return onEnded()
 	end,
+	[Enum.UserInputState.Cancel] = function(_, _, onEnded: (() -> ())?)
+		if not onEnded then return end
+
+		return onEnded()
+	end,
 }
 
 local function SetupInput(name: string, inputTable: InputsInterface.InputTable)

@@ -51,8 +51,7 @@ local function updateLocomotion(character)
 
 		animations.Run:AdjustSpeed(speedScale * direction)
 
-		local weight = if moving then math.clamp(horizontalSpeed / 32, 0, 1) else 0
-
+		local weight = if moving then math.clamp(horizontalSpeed / 32, 0.01, 1) else 0.01
 		animations.Run:AdjustWeight(weight, 0.15)
 	end
 
@@ -110,7 +109,7 @@ local function updateStateAnimations(character)
 	--------------------------------------------------
 
 	if state == "Fall" then
-		animations.Run:AdjustWeight(0, 0.1)
+		animations.Run:AdjustWeight(0.01, 0.1)
 
 		if jumpCount >= 2 then jumpCount = 0 end
 
@@ -172,10 +171,10 @@ local function initCharacter(character)
 	-- BASE TRACKS ALWAYS PLAY
 	--------------------------------------------------
 
-	animations.Idle:Play(0)
+	animations.Idle:Play()
 
-	animations.Run:Play(0)
-	animations.Run:AdjustWeight(0)
+	animations.Run:Play()
+	animations.Run:AdjustWeight(0.01)
 
 	--------------------------------------------------
 	-- CLEANUP

@@ -1,6 +1,8 @@
-return {
-	votes = {},
+--!strict
 
-	currentModes = {},
-	currentMaps = {},
+return {
+	votes = {} :: { [Player]: string? },
+	currentItems = {} :: { string },
+	roundId = 0,
+	voteType = "mode",
 }

@@ -63,6 +63,20 @@ local function playSound(soundName, ...)
 
 		SwingSound:Play()
 		Debris:AddItem(SwingSound, SwingSound.TimeLength + 0.1)
+	elseif soundName == "WallJump" then
+		local wallPart, hitPosition = unpack { ... }
+		if not wallPart or not wallPart:IsA("BasePart") or typeof(hitPosition) ~= "Vector3" then return end
+
+		local attachment = Instance.new("Attachment")
+		attachment.CFrame = wallPart.CFrame:ToObjectSpace(CFrame.new(hitPosition))
+		attachment.Parent = wallPart
+		local walljumpAsset = SoundAssets:FindFirstChild("WallJump")
+		assert(walljumpAsset and walljumpAsset:IsA("Sound"), "[PlaySound] Assets.Sounds.WallJump is missing")
+		local walljumpSound = walljumpAsset:Clone()
+		walljumpSound.Parent = attachment
+		walljumpSound.PlaybackSpeed += random:NextNumber(-0.08, 0.08)
+		walljumpSound:Play()
+		Debris:AddItem(attachment, walljumpSound.TimeLength + 0.1)
 	elseif soundName == "Trampoline" then
 		local rootPart = unpack { ... }
 

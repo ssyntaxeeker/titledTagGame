@@ -40,44 +40,25 @@ end
 
 function ScoreProcessing.processFinalScores()
 	local scores = MatchmakingInterface.scores or {}
-	local topPlayers = {}
-	local highScore = -math.huge
-
-	for player, score in scores do
-		if score > highScore then
-			highScore = score
-			topPlayers = { player }
-		elseif score == highScore then
-			table.insert(topPlayers, player)
-		end
+	assert(not MatchmakingInterface.ratingAwarded, "[ScoreProcessing.processFinalScores] rating was already awarded")
+	local userIds = {}
+	for userId in scores do
+		table.insert(userIds, userId)
 	end
+	assert(#userIds == 2, `[ScoreProcessing.processFinalScores] expected 2 scores, received {#userIds}`)
+	local playerA = getPlayerFromUserId(userIds[1])
+	local playerB = getPlayerFromUserId(userIds[2])
+	assert(playerA and playerB, "[ScoreProcessing.processFinalScores] both ranked players must still be connected")
 
-	sendDiscordWebhook(scores, topPlayers)
+	local scoreA = scores[userIds[1]]
+	local scoreB = scores[userIds[2]]
+	local resultA = if scoreA > scoreB then 1 elseif scoreA < scoreB then 0 else 0.5
+	MatchmakingFunctions.GiveHeadToHeadElo(playerA, playerB, resultA)
+	MatchmakingInterface.ratingAwarded = true
 
-	if #topPlayers == 1 then
-		local finalWinner = topPlayers[1]
-		print("FINAL WINNER: " .. getPlayerFromUserId(finalWinner).Name)
-
-		for player, _ in scores do
-			if player ~= finalWinner then
-				MatchmakingFunctions.GiveElo(getPlayerFromUserId(finalWinner), getPlayerFromUserId(player), 1)
-				MatchmakingFunctions.GiveElo(getPlayerFromUserId(player), getPlayerFromUserId(finalWinner), 0)
-			end
-		end
-	elseif #topPlayers > 1 then
-		print("DRAW between: ")
-		for _, player in topPlayers do
-			print(getPlayerFromUserId(player).Name)
-		end
-
-		for _, playerA in topPlayers do
-			for playerB, _ in scores do
-				if playerB ~= playerA then MatchmakingFunctions.GiveElo(getPlayerFromUserId(playerA), getPlayerFromUserId(playerB), 0.5) end
-			end
-		end
-	else
-		print("No winner determined")
-	end
+	local topPlayers = if resultA == 1 then { userIds[1] } elseif resultA == 0 then { userIds[2] } else userIds
+	local webhookSucceeded, webhookError = pcall(sendDiscordWebhook, scores, topPlayers)
+	if not webhookSucceeded then warn(`[ScoreProcessing] Ranked webhook failed: {webhookError}`) end
 end
 
 return ScoreProcessing

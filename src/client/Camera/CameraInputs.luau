@@ -23,11 +23,14 @@ CameraInputs.ChangeCameraPerspective.OnBegan = function()
 end
 
 CameraInputs.UnlockCamera.OnBegan = function()
+	if CameraModule.RMB then return end
 	CameraModule.RMB = true
 	CameraModule.StartRMB = true
+	CameraModule.ResetCamera = false
 end
 
 CameraInputs.UnlockCamera.OnEnded = function()
+	if not CameraModule.RMB then return end
 	CameraModule.ResetCamera = true
 	CameraModule.RMB = false
 end

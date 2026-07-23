@@ -1,9 +1,21 @@
+--!strict
+--[[
+    CameraModule (Client)
+    ==============
+    Author: Sol (3693744006)
+    Updated: 26/07/20
+
+    Owns the local camera presentation and exposes the same pitch plus
+    yaw-CFrame contract consumed by UTG movement and parkour.
+]]
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInterface)
+local MouseVisibilityService = require(ReplicatedStorage.Modules.Cursor.MouseVisibilityService)
 
 local localPlayer = Players.LocalPlayer
 local camera = workspace.CurrentCamera
@@ -14,11 +26,22 @@ CameraModule.RMB = false
 CameraModule.LockVector = false
 CameraModule.ResetCamera = false
 CameraModule.StartRMB = false
+CameraModule.CameraX = 0
+CameraModule.CameraY = CFrame.new()
+CameraModule.FreelookX = nil :: number?
+CameraModule.FreelookY = nil :: CFrame?
 CameraModule.CameraOffset =
 	Vector3.new(-4 + (8 * SettingsInterface.gameplay.thirdPersonDistanceX), 0.5, 2 + (8 * SettingsInterface.gameplay.thirdPersonDistanceZ))
 
 local initCameraCFrame = camera.CFrame
-local savedCameraOffset
+
+local function readCameraRotation(): (number, CFrame)
+	local cameraCFrame = camera.CFrame
+	local pitch = math.deg(math.asin(math.clamp(cameraCFrame.LookVector.Y, -1, 1)))
+	local look = cameraCFrame.LookVector
+	local yaw = math.atan2(-look.X, -look.Z)
+	return pitch, CFrame.Angles(0, yaw, 0)
+end
 
 local humanoid, rootPart, head
 
@@ -30,11 +53,17 @@ function CameraModule.SetCharacter(character)
 	RunService:UnbindFromRenderStep("CustomCamera")
 
 	local function UpdateCamera()
-		UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+		local shouldShowMouse = MouseVisibilityService.shouldShowMouse()
 		initCameraCFrame = camera.CFrame
+		local configuredFieldOfView = SettingsInterface.display.fov * 120
+		if camera.FieldOfView ~= configuredFieldOfView then
+			camera.FieldOfView = configuredFieldOfView
+		end
 
 		if CameraModule.FirstPerson then
-			localPlayer.CameraMode = Enum.CameraMode.LockFirstPerson
+			if localPlayer.CameraMode ~= Enum.CameraMode.LockFirstPerson then
+				localPlayer.CameraMode = Enum.CameraMode.LockFirstPerson
+			end
 			humanoid.CameraOffset = Vector3.new(0, 0, -0.3)
 
 			if not SettingsInterface.gameplay.moveCameraY then
@@ -48,7 +77,9 @@ function CameraModule.SetCharacter(character)
 				camera.CFrame = CFrame.new(headPos, headPos + initCameraCFrame.LookVector)
 			end
 		else
-			localPlayer.CameraMode = Enum.CameraMode.Classic
+			if localPlayer.CameraMode ~= Enum.CameraMode.Classic then
+				localPlayer.CameraMode = Enum.CameraMode.Classic
+			end
 
 			local yOffset = CameraModule.CameraOffset * Vector3.yAxis
 			local xzOffset = CFrame.new(CameraModule.CameraOffset * (Vector3.xAxis + Vector3.zAxis))
@@ -57,8 +88,11 @@ function CameraModule.SetCharacter(character)
 			humanoid.CameraOffset = yOffset
 		end
 
+		CameraModule.CameraX, CameraModule.CameraY = readCameraRotation()
+
 		if CameraModule.StartRMB then
-			savedCameraOffset = rootPart.CFrame:ToObjectSpace(camera.CFrame)
+			CameraModule.FreelookX = CameraModule.CameraX
+			CameraModule.FreelookY = CameraModule.CameraY
 			CameraModule.StartRMB = false
 
 			if SettingsInterface.gameplay.turn180OnFreeLook then
@@ -66,15 +100,29 @@ function CameraModule.SetCharacter(character)
 			end
 		end
 
-		if CameraModule.ResetCamera and savedCameraOffset then
-			camera.CFrame = rootPart.CFrame:ToWorldSpace(savedCameraOffset)
+		if CameraModule.ResetCamera then
+			local freelookX = CameraModule.FreelookX
+			local freelookY = CameraModule.FreelookY
+			if freelookX and freelookY then
+				local cameraPosition = camera.CFrame.Position
+				camera.CFrame = (freelookY * CFrame.Angles(math.rad(freelookX), 0, 0)) + cameraPosition
+				CameraModule.CameraX = freelookX
+				CameraModule.CameraY = freelookY
+			end
+			CameraModule.FreelookX = nil
+			CameraModule.FreelookY = nil
 			CameraModule.ResetCamera = false
 		end
 
-		if not (CameraModule.RMB or CameraModule.LockVector) then
+		if not (CameraModule.RMB or CameraModule.LockVector or shouldShowMouse) then
 			humanoid.AutoRotate = false
-			local rootCFrame = CFrame.Angles(0, select(2, camera.CFrame:ToEulerAnglesYXZ()), 0)
-			rootPart.CFrame = rootCFrame + rootPart.Position
+			rootPart.CFrame = CameraModule.CameraY + rootPart.Position
+		end
+
+		if UserInputService.MouseEnabled then
+			-- CameraMode can relock the cursor, so interactive UI ownership wins last.
+			UserInputService.MouseBehavior = if shouldShowMouse then Enum.MouseBehavior.Default else Enum.MouseBehavior.LockCenter
+			UserInputService.MouseIconEnabled = shouldShowMouse
 		end
 	end
 

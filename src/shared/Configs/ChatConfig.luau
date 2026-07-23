@@ -1,4 +1,5 @@
 local config = {
+	enabled = false,
 	commandPrefix = "/",
 
 	maxMessageLength = 100,
@@ -31,4 +32,4 @@ config.messageTextFormat = function(messageData, ctx)
 	return string.format("%s: %s", senderText, text)
 end
 
-return config
+return table.freeze(config)

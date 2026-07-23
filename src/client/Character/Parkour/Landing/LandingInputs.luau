@@ -22,15 +22,12 @@ function LandingInputs.StartSlide()
 
 	local humanoid = character:FindFirstChild("Humanoid")
 	if not humanoid then return end
-
 	if humanoid.FloorMaterial == Enum.Material.Air then return end
 
-	if humanoid.MoveDirection.Magnitude > 0 and humanoid.WalkSpeed > 24 and not character:GetAttribute("Rolling") then
-		if character:GetAttribute("Sliding") then
-			Slide.Stop()
-		else
-			Slide.Start()
-		end
+	if character:GetAttribute("Sliding") then
+		Slide.Stop()
+	elseif Slide.CanStart(character) then
+		Slide.Start()
 	else
 		Crouch.Start()
 	end

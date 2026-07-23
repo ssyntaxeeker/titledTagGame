@@ -15,9 +15,7 @@ local function updateClientVotes()
 end
 
 VoteRE.OnServerEvent:Connect(function(player, vote)
-	if workspace:GetAttribute("Gamemode") ~= "Voting" then return end
-
-	VotingInterface.votes[player] = vote
+	if not VotingFunctions.SubmitVote(player, vote) then return end
 	updateClientVotes()
 end)
 

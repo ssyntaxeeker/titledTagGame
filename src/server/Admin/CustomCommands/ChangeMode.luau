@@ -27,5 +27,5 @@ return CommandRegistry.RegisterCommand("mode", function(sender, modeName)
 		end
 	end
 
-	RoundManager.SetMode(mode)
+	if mode then RoundManager.SetMode(mode) end
 end)

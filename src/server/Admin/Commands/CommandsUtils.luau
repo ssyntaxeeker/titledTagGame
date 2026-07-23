@@ -1,7 +1,9 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 
 local Whitelist = require(ReplicatedStorage.Shared.Configs.Whitelist)
+local PrivateServerPermissionService = require(ServerStorage.Modules.Admin.PrivateServer.PrivateServerPermissionService)
 
 local CommandsUtils = {}
 
@@ -42,6 +44,9 @@ function CommandsUtils.CheckForPermission(player, canUseTable, forChat)
 	if not player then return false end
 
 	for _, role in canUseTable do
+		if role == "PrivateServerOwner" and PrivateServerPermissionService.hasCommandPermission(player) then
+			return true
+		end
 		local users = Whitelist[role]
 		if not users then continue end
 
@@ -60,6 +65,7 @@ end
 
 function CommandsUtils.GetPlayerPermission(player)
 	if not player then return end
+	if PrivateServerPermissionService.hasCommandPermission(player) then return "PrivateServerOwner" end
 
 	for role, users in Whitelist do
 		if not table.find(users, player.Name) and not table.find(users, tostring(player.UserId)) then continue end

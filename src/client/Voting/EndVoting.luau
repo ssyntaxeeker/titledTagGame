@@ -5,13 +5,8 @@ local VotingUIFunctions = require(ReplicatedStorage.Modules.Voting.VotingUIFunct
 
 local EndClientVotingRE = Net:RemoteEvent("EndClientVoting")
 
-local function endVoting()
-	for _, frame in VotingUIFunctions.GetUI().Frames:GetChildren() do
-		if not frame:IsA("Frame") then continue end
-
-		VotingUIFunctions.HideFrame(frame)
-		task.wait(0.2)
-	end
+local function endVoting(roundId)
+	VotingUIFunctions.EndSession(roundId)
 end
 
 EndClientVotingRE.OnClientEvent:Connect(endVoting)

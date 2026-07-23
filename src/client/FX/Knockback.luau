@@ -1,42 +1,42 @@
-local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local KnockbackVelocity = require(ReplicatedStorage.Modules.FX.KnockbackVelocity)
 local Net = require(ReplicatedStorage.Packages.Net)
 
 local localPlayer = Players.LocalPlayer
 
 local ApplyKnockbackRE = Net:RemoteEvent("ApplyKnockback")
 
-ApplyKnockbackRE.OnClientEvent:Connect(function(character, knockbackType)
+ApplyKnockbackRE.OnClientEvent:Connect(function(source, knockbackType)
 	local targetCharacter = localPlayer.Character
-	local targetRootPart = targetCharacter.HumanoidRootPart
-	local rootPart = character.HumanoidRootPart
+	if not targetCharacter then return end
 
-	local direction = (targetRootPart.Position - rootPart.Position).Unit
-	local attackerVelocity = rootPart.AssemblyLinearVelocity.Magnitude
-	local speedFactor = math.clamp(attackerVelocity / 32, 0, 3)
+	local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+	if not targetRootPart or not targetRootPart:IsA("BasePart") then return end
 
-	local baseForward = 48
-	local knockbackMultiplier = character:GetAttribute("KnockbackMultiplier")
-	local forwardImpulse = direction * (baseForward + speedFactor * 20) * (knockbackMultiplier or 1)
-	local upImpulse = Vector3.new(0, 11 + speedFactor * 5, 0) * ((knockbackMultiplier and knockbackMultiplier / 2) or 0.5)
-
-	forwardImpulse *= Vector3.new(1.1, 0.7, 1.1)
-
-	local randomSide = rootPart.CFrame.RightVector * (math.random() - 0.5) * 15
-	local finalVelocity = forwardImpulse + upImpulse + randomSide
-
-	if knockbackType == "NTB" then
-		finalVelocity *= 0.6
+	if typeof(source) == "Vector3" then
+		KnockbackVelocity.apply({
+			targetRootPart = targetRootPart,
+			originPosition = source,
+			knockbackType = knockbackType,
+		})
+		return
 	end
 
-	local bodyVelocity = Instance.new("BodyVelocity")
-	bodyVelocity.Velocity = finalVelocity
-	bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-	bodyVelocity.P = 1e4
-	bodyVelocity.Parent = targetRootPart
-	Debris:AddItem(bodyVelocity, 0.07)
+	if typeof(source) ~= "Instance" then return end
+
+	local rootPart = source:FindFirstChild("HumanoidRootPart")
+	if not rootPart or not rootPart:IsA("BasePart") then return end
+
+	KnockbackVelocity.apply({
+		targetRootPart = targetRootPart,
+		originPosition = rootPart.Position,
+		sourceVelocity = rootPart.AssemblyLinearVelocity,
+		sourceRightVector = rootPart.CFrame.RightVector,
+		knockbackType = knockbackType,
+		multiplier = source:GetAttribute("KnockbackMultiplier"),
+	})
 end)
 
 return 0

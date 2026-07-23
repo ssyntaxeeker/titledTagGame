@@ -13,7 +13,8 @@ local function upd(key)
     InputsManager.RemoveInput("JumpRequest")
     InputsManager.AddInput("JumpRequest", {
         Keys = {key},
-        OnBegan = AerialInputs.JumpRequest
+        OnBegan = AerialInputs.JumpRequest,
+        OnEnded = AerialInputs.JumpReleased,
     })
 end
 

@@ -1,54 +1,47 @@
+--!strict
+--[[
+    ClockTimeCheck (Server)
+    =======================
+    Author: Sol (3693744006)
+    Updated: 26/07/19
+
+    Advances only the current round timer and delegates expiry to its mode.
+]]
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
 local ClockInterface = require(ServerStorage.Modules.GameLogic.Clock.ClockInterface)
+local RoundManager = require(ServerStorage.Modules.GameLogic.Round.RoundManager)
 local RoundUtils = require(ServerStorage.Modules.GameLogic.Round.RoundUtils)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 
 local function initTimer()
 	while task.wait(1) do
 		local timeLeft = workspace:GetAttribute("TimeLeft")
+		local mode = workspace:GetAttribute("Gamemode")
+		local id = workspace:GetAttribute("RoundId")
+		if type(timeLeft) ~= "number" or timeLeft <= 0 or type(mode) ~= "string" or type(id) ~= "number" then continue end
+		if workspace:GetAttribute("RoundState") ~= "Running" then continue end
 
-		local players = Players:GetPlayers()
-
-		local gamemode = workspace:GetAttribute("Gamemode")
-		if not gamemode then continue end
-
-		local modeConfig = require(ReplicatedStorage.Shared.Configs.Modes[gamemode])
-
-		if (gamemode == "InfFFA" or gamemode == "FFA") and #players <= 8 then ClockInterface.updateTagRangeSignal:Fire() end
-
-		if not timeLeft or timeLeft <= 0 then continue end
-
-		local winningRole = modeConfig.winRole
-
-		if ReplicatedStorage:GetAttribute("Ranked") and winningRole == "Runner" then ClockInterface.updateRunnerTimesSignal:Fire() end
-
-		if modeConfig.lastPlayerStanding then
-			local lastPlayerStanding = RoundUtils.CheckIfLastPlayerStanding()
-
-			if lastPlayerStanding then
-				workspace:SetAttribute("TimeLeft", 0)
-				timeLeft = 1
-			else
-				workspace:SetAttribute("TimeLeft", timeLeft - 1)
-			end
-		else
-			workspace:SetAttribute("TimeLeft", timeLeft - 1)
+		if (mode == "InfFFA" or mode == "FFA") and #Players:GetPlayers() <= 8 then
+			ClockInterface.updateTagRangeSignal:Fire()
+		end
+		if ReplicatedStorage:GetAttribute("Ranked") then
+			ClockInterface.updateRunnerTimesSignal:Fire()
 		end
 
-		if timeLeft - 1 == 0 then
-			local winners = {}
-
-			if winningRole then
-				for _, player in players do
-					if player.Character and player.Character:GetAttribute("Role") == winningRole then table.insert(winners, player) end
-				end
-			end
-
-			ClockInterface.roundEndedSignal:Fire(winners)
+		local configModule = ReplicatedStorage.Shared.Configs.Modes:FindFirstChild(mode)
+		local modeConfig = if configModule then require(configModule) else nil
+		if modeConfig and modeConfig.lastPlayerStanding and RoundUtils.CheckIfLastPlayerStanding() then
+			RoundManager.EndRound(nil, "LastPlayerStanding")
+			continue
 		end
+
+		local nextTime = timeLeft - 1
+		workspace:SetAttribute("TimeLeft", nextTime)
+		if nextTime <= 0 then RoundManager.TimerExpired(id) end
 	end
 end
 

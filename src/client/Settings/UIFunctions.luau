@@ -2,11 +2,14 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
+local MouseVisibilityService = require(ReplicatedStorage.Modules.Cursor.MouseVisibilityService)
+
 local Assets = ReplicatedStorage.Assets
 
 local localPlayer = Players.LocalPlayer
 
 local SettingsUI = Assets.UI.SettingsUI:Clone()
+SettingsUI.Enabled = false
 SettingsUI.Parent = localPlayer.PlayerGui
 
 local Main = SettingsUI.Main
@@ -15,6 +18,7 @@ local UIFunctions = {}
 
 function UIFunctions.Open()
 	SettingsUI.Enabled = true
+	MouseVisibilityService.setVisible(SettingsUI, true)
 
 	if UserInputService.TouchEnabled == true then
 		SettingsUI.Main.Buttons.Mobile.Visible = true
@@ -27,6 +31,7 @@ end
 
 function UIFunctions.Close()
 	SettingsUI.Enabled = false
+	MouseVisibilityService.setVisible(SettingsUI, false)
 end
 
 function UIFunctions.ChangeTab(newTabName)

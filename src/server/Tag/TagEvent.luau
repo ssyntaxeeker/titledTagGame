@@ -7,6 +7,7 @@ local MatchmakingInterface = require(ServerStorage.Modules.Matchmaking.Matchmaki
 local NTB = require(ServerStorage.Modules.Tag.NTB)
 local Net = require(ReplicatedStorage.Packages.Net)
 local Profiles = require(ServerStorage.Modules.Data.Profiles)
+local RoundManager = require(ServerStorage.Modules.GameLogic.Round.RoundManager)
 local RolesFunctions = require(ServerStorage.Modules.GameLogic.Roles.RolesFunctions)
 
 local RoleConfigsStorage = ReplicatedStorage.Shared.Configs.Roles
@@ -35,6 +36,27 @@ TagRE.OnServerEvent:Connect(function(player, target)
 		if not targetRootPart then return end
 		if targetHumanoid.Health <= 0 then return end
 		if targetCharacter:GetAttribute("Role") == "Dead" then return end
+		if workspace:GetAttribute("TimeLeft") == 0 then return end
+		if ReplicatedStorage:GetAttribute("Ranked")
+			and ReplicatedStorage:GetAttribute("RankedMatchStatus") ~= "ActiveRound"
+		then
+			return
+		end
+
+		local modeConfigModule = ReplicatedStorage.Shared.Configs.Modes:FindFirstChild(workspace:GetAttribute("Gamemode"))
+		if not modeConfigModule then return end
+		local modeConfig = require(modeConfigModule)
+		if not modeConfig.allowTagging then return end
+
+		local playerRole = character:GetAttribute("Role")
+		local targetPlayerRole = targetCharacter:GetAttribute("Role")
+		if typeof(playerRole) ~= "string" or typeof(targetPlayerRole) ~= "string" then return end
+		local playerRoleModule = RoleConfigsStorage:FindFirstChild(playerRole)
+		local targetRoleModule = RoleConfigsStorage:FindFirstChild(targetPlayerRole)
+		if not playerRoleModule or not targetRoleModule then return end
+		local playerRoleConfig = require(playerRoleModule)
+		local targetRoleConfig = require(targetRoleModule)
+		if playerRoleConfig.TagDisabled == true or targetRoleConfig.TagDisabled == true then return end
 
 		local durability = targetCharacter:GetAttribute("NTBDurability")
 
@@ -47,21 +69,23 @@ TagRE.OnServerEvent:Connect(function(player, target)
 			PlaySoundRE:FireAllClients("NTBHit", targetRootPart)
 		end
 
-		if workspace:GetAttribute("TimeLeft") == 0 then return end
-
-		local modeConfig = ReplicatedStorage.Shared.Configs.Modes:FindFirstChild(workspace:GetAttribute("Gamemode"))
-		if not modeConfig then return end
-
-		modeConfig = require(modeConfig)
-		if not modeConfig.allowTagging then return end
-
-		local playerRole, targetPlayerRole = character:GetAttribute("Role"), targetCharacter:GetAttribute("Role")
-		local playerRoleConfig = require(RoleConfigsStorage[playerRole])
-
 		if durability ~= 0 and durability ~= nil then
 			if targetPlayer then NTB.Hit(targetPlayer) end
 			if durability - 1 == 0 then PlaySoundRE:FireAllClients("NTBHitBreak", targetRootPart) end
 
+			return
+		end
+
+		if targetPlayer and RoundManager.HandleTag({
+			attacker = player,
+			target = targetPlayer,
+			attackerCharacter = character,
+			targetCharacter = targetCharacter,
+		}) then
+			local playerProxy = Profiles.ReturnProxy(player)
+			if playerProxy then playerProxy.Tags = (playerProxy.Tags or 0) + 1 end
+			NTB.Hit(player)
+			NTB.Hit(targetPlayer)
 			return
 		end
 
@@ -81,7 +105,10 @@ TagRE.OnServerEvent:Connect(function(player, target)
 				local playerProxy = Profiles.ReturnProxy(player)
 				playerProxy.Tags += 1
 
-				if workspace:GetAttribute("Gamemode") == "InfFFA" then character.Humanoid.Health = character.Humanoid.MaxHealth end
+				local gamemode = workspace:GetAttribute("Gamemode")
+				if gamemode == "InfFFA" or gamemode == "RankedFFA" then
+					character.Humanoid.Health = character.Humanoid.MaxHealth
+				end
 
 				if ReplicatedStorage:GetAttribute("Ranked") then MatchmakingInterface.killedSignal:Fire(player) end
 			end

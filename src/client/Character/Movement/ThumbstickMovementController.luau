@@ -5,6 +5,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local Customization = require(ReplicatedStorage.Modules.Mobile.Customization)
 local MovementInterface = require(ReplicatedStorage.Modules.Character.Movement.MovementInterface)
+local MovementMotor = require(ReplicatedStorage.Modules.Character.Movement.MovementMotor)
 
 local localPlayer = Players.LocalPlayer
 local ZERO_VECTOR3 = Vector3.new()
@@ -50,7 +51,10 @@ local function createUI()
 	UserInputService.TextBoxFocusReleased:Connect(resetThumbstick)
 
 	frame.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.Touch and input.UserInputState == Enum.UserInputState.Begin then
+		if input.UserInputType == Enum.UserInputType.Touch
+			and input.UserInputState == Enum.UserInputState.Begin
+			and ThumbstickController.MoveTouchObject == nil
+		then
 			ThumbstickController.MoveTouchObject = input
 			updateCenter()
 		end
@@ -75,31 +79,16 @@ local function createUI()
 	end)
 end
 
-local function onRenderStepped()
+local function onRenderStepped(dt)
 	if not ThumbstickController.Enabled then return end
 
 	local character = localPlayer.Character
 	if not character then return end
 
 	local humanoid = character:FindFirstChild("Humanoid")
-	local root = character:FindFirstChild("HumanoidRootPart")
-	if not humanoid or not root then return end
-
-	local move = MovementInterface.MoveVector
-
-	if move ~= ZERO_VECTOR3 then
-		local cam = workspace.CurrentCamera
-		local forward = cam.CFrame.LookVector
-		local right = cam.CFrame.RightVector
-		local moveDir = (right * move.X + forward * move.Z)
-
-		moveDir = Vector3.new(moveDir.X, 0, moveDir.Z)
-		if moveDir.Magnitude > 0 then humanoid:Move(moveDir.Unit, false) end
-	else
-		humanoid:Move(ZERO_VECTOR3, false)
-	end
-
-	humanoid.Jump = MovementInterface.IsJumping
+	if not humanoid or not character:FindFirstChild("HumanoidRootPart") then return end
+	MovementMotor.step(character, dt)
+	humanoid.Jump = MovementInterface.IsJumping and character:GetAttribute("Walljumping") ~= true
 end
 
 local renderSteppedConnection

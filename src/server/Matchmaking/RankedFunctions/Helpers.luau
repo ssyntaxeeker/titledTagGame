@@ -12,13 +12,11 @@ function Helpers.setAnchored(player, anchored)
 	character:WaitForChild("HumanoidRootPart").Anchored = anchored
 end
 
-function Helpers.teleportPlayerToSpawnFacingNext(player, mySpawnCFrame, nextSpawnCFrame)
+function Helpers.teleportPlayerToSpawn(player, spawnCFrame)
 	local character = Helpers.waitForCharacter(player)
 	local hrp = character:FindFirstChild("HumanoidRootPart")
 	if not hrp then return end
-
-	local direction = (nextSpawnCFrame.Position - mySpawnCFrame.Position).Unit
-	hrp.CFrame = CFrame.new(mySpawnCFrame.Position, mySpawnCFrame.Position + direction)
+	hrp.CFrame = spawnCFrame
 end
 
 return Helpers

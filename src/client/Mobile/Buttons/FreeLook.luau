@@ -3,13 +3,26 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Buttons = require(ReplicatedStorage.Modules.Mobile.Buttons)
 local CameraInputs = require(ReplicatedStorage.Modules.Camera.CameraInputs)
 
-local function stop()
-	task.wait(0.1)
-	CameraInputs.UnlockCamera.OnEnded()
+local active = false
+
+local function setActive(nextActive)
+	if active == nextActive then return end
+	active = nextActive
+	if active then
+		CameraInputs.UnlockCamera.OnBegan()
+	else
+		CameraInputs.UnlockCamera.OnEnded()
+	end
 end
 
-local function start()
-	CameraInputs.UnlockCamera.OnBegan()
-end
-
-return Buttons.Register("FreeLook", { OnBegan = start, OnEnded = stop })
+return Buttons.Register("FreeLook", {
+	OnBegan = function()
+		setActive(true)
+	end,
+	OnEnded = function()
+		setActive(false)
+	end,
+	OnDisabled = function()
+		setActive(false)
+	end,
+})

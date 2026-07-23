@@ -1,3 +1,7 @@
+--!strict
+
 return {
-	swingingBar = nil,
+	swingingBar = nil :: BasePart?,
+	swingReleaseRequested = false,
+	swingInputHeld = false,
 }

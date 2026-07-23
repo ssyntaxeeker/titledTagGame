@@ -17,8 +17,8 @@ return TextChatService.TextChatCommands.SetChatPerms.Triggered:Connect(function(
 
 	if not CommandsUtils.CheckForPermission(Players:GetPlayerByUserId(source.UserId), canUseCommand) then return end
 
-	PlayerCheckerFunctions.Perms.chatPerms = parameters[2] == "true" and 1 or 0
-	print(`Set chatPerms to {parameters[2] == "true" and 1 or 0}`)
+	PlayerCheckerFunctions.Perms.chatPerms = parameters[1] == "true" and 1 or 0
+	print(`Set chatPerms to {parameters[1] == "true" and 1 or 0}`)
 
 	if PlayerCheckerFunctions.Perms.chatPerms == 1 then
 		for _, player in Players:GetPlayers() do

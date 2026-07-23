@@ -8,6 +8,18 @@ local ChangeSettingsRE = Net:RemoteEvent("ChangeSettings")
 
 local SettingsUtils = {}
 
+-- Roblox can dispatch touch input to descendants briefly after an ancestor UI
+-- closes. Slider writes are valid only while the complete UI branch is visible.
+local function isVisibleForInput(guiObject)
+	local current = guiObject
+	while current do
+		if current:IsA("ScreenGui") then return current.Enabled end
+		if current:IsA("GuiObject") and not current.Visible then return false end
+		current = current.Parent
+	end
+	return false
+end
+
 function SettingsUtils.KeybindButton(button, onUpdate)
 	button.MouseButton1Up:Connect(function()
 		button.Text = "-"
@@ -27,6 +39,7 @@ function SettingsUtils.SlideMarker(marker, onUpdate)
 	marker.Active = true
 
 	local dragging = false
+	local dragInput
 	local renderConn
 	local inputEndedConn
 	local margin = 120
@@ -42,23 +55,31 @@ function SettingsUtils.SlideMarker(marker, onUpdate)
 		return result
 	end
 
-	local function getPercentFromMouse()
+	local function getPointerPosition()
+		if dragInput and dragInput.UserInputType == Enum.UserInputType.Touch then
+			return Vector2.new(dragInput.Position.X, dragInput.Position.Y)
+		end
+		return UserInputService:GetMouseLocation()
+	end
+
+	local function getPercentFromPointer()
 		if not slider then return lastPercent end
-		local mouse = UserInputService:GetMouseLocation()
+		local pointerPosition = getPointerPosition()
 		local absPos, absSize = slider.AbsolutePosition, slider.AbsoluteSize
 		if absSize.X <= 0 then return lastPercent end
-		local x = math.clamp(mouse.X - absPos.X, 0, absSize.X)
-		return x / absSize.X, mouse, absPos, absSize
+		local x = math.clamp(pointerPosition.X - absPos.X, 0, absSize.X)
+		return x / absSize.X, pointerPosition, absPos, absSize
 	end
 
 	local function finish()
 		if not dragging then return end
 		dragging = false
 
-		local percent = getPercentFromMouse()
+		local percent = getPercentFromPointer()
 		lastPercent = percent
 		local result = safeCall(onUpdate, percent)
 		ChangeSettingsRE:FireServer(marker:GetAttribute("settingName"), marker:GetAttribute("keyName"), result)
+		dragInput = nil
 
 		if renderConn then
 			renderConn:Disconnect()
@@ -71,7 +92,7 @@ function SettingsUtils.SlideMarker(marker, onUpdate)
 	end
 
 	local function update()
-		local percent, mouse, absPos, absSize = getPercentFromMouse()
+		local percent, pointerPosition, absPos, absSize = getPercentFromPointer()
 		if not percent then
 			finish()
 			return
@@ -81,47 +102,38 @@ function SettingsUtils.SlideMarker(marker, onUpdate)
 		marker.Position = UDim2.new(percent, 0, marker.Position.Y.Scale, marker.Position.Y.Offset)
 		safeCall(onUpdate, percent)
 
-		if mouse then
+		if pointerPosition then
 			if
-				mouse.X < absPos.X - margin
-				or mouse.X > absPos.X + absSize.X + margin
-				or mouse.Y < absPos.Y - margin
-				or mouse.Y > absPos.Y + absSize.Y + margin
+				pointerPosition.X < absPos.X - margin
+				or pointerPosition.X > absPos.X + absSize.X + margin
+				or pointerPosition.Y < absPos.Y - margin
+				or pointerPosition.Y > absPos.Y + absSize.Y + margin
 			then
 				finish()
 			end
 		end
 	end
 
-	local function begin()
-		if dragging then return end
+	local function begin(input)
+		if dragging or not isVisibleForInput(slider) then return end
 		dragging = true
+		dragInput = input
 		update()
 		renderConn = RunService.RenderStepped:Connect(update)
-		inputEndedConn = UserInputService.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then finish() end
+		inputEndedConn = UserInputService.InputEnded:Connect(function(endedInput)
+			if endedInput == dragInput then finish() end
 		end)
 	end
 
 	marker.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then begin() end
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then begin(input) end
 	end)
 
 	if slider then
 		slider.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then begin() end
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then begin(input) end
 		end)
 	end
-
-	UserInputService.InputBegan:Connect(function(input, gameProcessed)
-		if gameProcessed then return end
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			if not slider then return end
-			local pos = UserInputService:GetMouseLocation()
-			local ap, asz = slider.AbsolutePosition, slider.AbsoluteSize
-			if pos.X >= ap.X and pos.X <= ap.X + asz.X and pos.Y >= ap.Y and pos.Y <= ap.Y + asz.Y then begin() end
-		end
-	end)
 
 	marker:GetPropertyChangedSignal("Parent"):Connect(function()
 		slider = marker.Parent
@@ -129,7 +141,6 @@ function SettingsUtils.SlideMarker(marker, onUpdate)
 
 	local initial = marker.Position.X.Scale or 0
 	lastPercent = initial
-	safeCall(onUpdate, initial)
 end
 
 return SettingsUtils

@@ -14,6 +14,8 @@ local UIListLayout = ScrollFrame:WaitForChild("UIListLayout")
 local PlayerTemplate = UIListLayout:WaitForChild("PlayerTemplate")
 local RoleTemplate = UIListLayout:WaitForChild("RoleTemplate")
 
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
 local playerRows = {}
 local roleHeaders = {}
 
@@ -32,19 +34,19 @@ local function getRoleConfig(roleName)
 end
 
 local function ensureRoleHeader(roleName, playerCount)
+	local config = getRoleConfig(roleName)
+	local displayName = (config and config.DisplayName) or roleName
+	local roleColor = (config and config.Color) or Color3.new(1, 1, 1)
 	if roleHeaders[roleName] then
 		local header = roleHeaders[roleName]
-		header.gamemode.Text = string.format("%s - %d", roleName:upper(), playerCount)
-		return header
+		header.gamemode.Text = string.format("%s - %d", displayName:upper(), playerCount)
+		return header, roleColor
 	end
 
 	local header = RoleTemplate:Clone()
 	header.Name = "Role_" .. roleName
 	header.Visible = true
 	header.Parent = ScrollFrame
-
-	local config = getRoleConfig(roleName)
-	local roleColor = (config and config.Color) or Color3.new(1, 1, 1)
 
 	header.BackgroundColor3 = roleColor
 
@@ -61,7 +63,9 @@ local function ensureRoleHeader(roleName, playerCount)
 		}
 	end--]]
 
-	if header:FindFirstChild("gamemode") then header.gamemode.Text = string.format("%s - %d", roleName:upper(), playerCount) end
+	if header:FindFirstChild("gamemode") then
+		header.gamemode.Text = string.format("%s - %d", displayName:upper(), playerCount)
+	end
 
 	roleHeaders[roleName] = header
 	return header, roleColor
@@ -116,7 +120,12 @@ local function updateRow(player)
 	row.Stats.tags.Text = tostring(player:GetAttribute("Tags") or 0)
 	row.Stats.elo.Text = tostring(player:GetAttribute("ELO") or 0)
 
-	row.ImageColor3 = getRoleConfig(player.Character and player.Character:GetAttribute("Role") or "Runner").Color
+	local roleConfig = getRoleConfig(player.Character and player.Character:GetAttribute("Role") or "Runner")
+	local roleColor = if roleConfig then roleConfig.Color else Color3.new(1, 1, 1)
+	row.BackgroundColor3 = roleColor
+	if row:IsA("ImageLabel") or row:IsA("ImageButton") then row.ImageColor3 = roleColor end
+	local gradient = row:FindFirstChildOfClass("UIGradient")
+	if gradient then gradient.Color = ColorSequence.new(roleColor) end
 
 	local badge = pickBadgeImage(player)
 
@@ -179,7 +188,10 @@ local function rebuildLeaderboard()
 		header.LayoutOrder = layoutOrder
 
 		table.sort(group.players, function(a, b)
-			return (tonumber(a:GetAttribute("ELO")) or 0) > (tonumber(b:GetAttribute("ELO")) or 0)
+			local eloA = tonumber(a:GetAttribute("ELO")) or 0
+			local eloB = tonumber(b:GetAttribute("ELO")) or 0
+			if eloA ~= eloB then return eloA > eloB end
+			return a.UserId < b.UserId
 		end)
 
 		for _, player in group.players do
@@ -187,7 +199,8 @@ local function rebuildLeaderboard()
 			local row = createRow(player)
 			row.LayoutOrder = layoutOrder
 			updateRow(player)
-			if row:IsA("Frame") then row.ImageColor3 = roleColor end
+			row.BackgroundColor3 = roleColor
+			if row:IsA("ImageLabel") or row:IsA("ImageButton") then row.ImageColor3 = roleColor end
 		end
 	end
 end

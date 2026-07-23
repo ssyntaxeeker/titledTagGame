@@ -11,6 +11,7 @@ local allowedSounds = {
 	"Land",
 	"Roll",
 	"Swing",
+	"WallJump",
 	"Trampoline",
 	"Tag",
 	"TagHit",

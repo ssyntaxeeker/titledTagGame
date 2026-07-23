@@ -11,6 +11,7 @@ local function jump()
 end
 
 local function stopJump()
+	AerialInputs.JumpReleased()
 	task.wait(0.1)
 	MovementInterface.IsJumping = false
 end

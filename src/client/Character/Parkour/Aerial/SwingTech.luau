@@ -2,12 +2,15 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local AnimationManager = require(ReplicatedStorage.Modules.Animations.AnimationManager)
+local AerialInterface = require(ReplicatedStorage.Modules.Character.Parkour.Aerial.AerialInterface)
 local CooldownManager = require(ReplicatedStorage.Vendor.CooldownManager)
 local DebugConfig = require(ReplicatedStorage.Modules.Debug.DebugConfig)
 local DebugFunctions = require(ReplicatedStorage.Modules.Debug.DebugFunctions)
 local Net = require(ReplicatedStorage.Packages.Net)
 local PlaySound = require(ReplicatedStorage.Modules.FX.PlaySound)
+local ParkourMovementModel = require(ReplicatedStorage.Modules.Character.Parkour.ParkourMovementModel)
 local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInterface)
+local SwingCollisionWindow = require(ReplicatedStorage.Modules.Character.Parkour.Aerial.SwingCollisionWindow)
 
 local Assets = ReplicatedStorage.Assets
 
@@ -28,22 +31,22 @@ return function(hitResult)
 	if humanoid.Health <= 0 then return end
 
 	local swingPart = hitResult.Instance
-	local originalCollide = swingPart.CanCollide
+	if not swingPart:IsA("BasePart") then return end
 
 	local swingAnimation = AnimationManager.GetTrack(humanoid.Animator, Assets.Animations.Parkour.Swing)
 
 	character:SetAttribute("Swinging", true)
-	CooldownManager.modifyCooldown(localPlayer, "Swing", true, 0.45)
+	AerialInterface.swingingBar = swingPart
+	AerialInterface.swingReleaseRequested = false
+	CooldownManager.modifyCooldown(localPlayer, "Swing", true, ParkourMovementModel.cooldowns.swing)
+	local releaseSwingCollisions = SwingCollisionWindow.acquire(character, hitResult.Position, swingPart)
 
 	task.spawn(function()
-		swingAnimation:Play(0.15, nil, 1.5)
+		swingAnimation:Play(0.1, 1, 1.5)
 
 		PlaySound("Swing", rootPart)
 		PlaySoundRE:FireServer("Swing", rootPart)
 	end)
-
-	swingPart.CanCollide = false
-	if swingPart.Parent:GetAttribute("SwingBar") then swingPart.Parent.CanCollide = false end
 
 	local targetPos = hitResult.Position + Vector3.new(0, -1.5, 0)
 	local backOffset = rootPart.CFrame.LookVector * -1
@@ -58,13 +61,33 @@ return function(hitResult)
 	bodyPos.Parent = rootPart
 
 	local velocity = rootPart.AssemblyLinearVelocity
-	local swingFactor = (math.clamp(-velocity.Y, 25, 80) / 25) ^ 0.7
+	local swingFactor = ParkourMovementModel.swingFactor(velocity.Y)
 
 	local elapsed = 0
 
+	local experimental = ParkourMovementModel.isExperimentalSwingBar(swingPart)
+	swingAnimation.Looped = experimental
+	local loopSpeed = 1
 	repeat
 		elapsed += task.wait()
-	until elapsed >= 0.4
+	until elapsed >= ParkourMovementModel.swingHoldSeconds
+		or (experimental and elapsed >= 0.15 and AerialInterface.swingInputHeld)
+
+	if experimental and elapsed >= 0.15 and AerialInterface.swingInputHeld then
+		character:SetAttribute("ExperimentalSwinging", true)
+		while AerialInterface.swingInputHeld
+			and AerialInterface.swingingBar == swingPart
+			and character.Parent ~= nil
+			and humanoid.Health > 0
+		do
+			local dt = task.wait()
+			loopSpeed += dt * 0.5
+			character:SetAttribute("SwingLoopSpeed", loopSpeed)
+			swingAnimation:AdjustSpeed(math.clamp(loopSpeed, 1, 3))
+		end
+		character:SetAttribute("ExperimentalSwinging", nil)
+		character:SetAttribute("SwingLoopSpeed", nil)
+	end
 
 	task.spawn(function()
 		local fmt = SettingsInterface.debug.numericalprecision and "%f" or "%.2f"
@@ -91,10 +114,25 @@ return function(hitResult)
 		moveDir = humanoid.MoveDirection
 	end
 
-	rootPart.AssemblyLinearVelocity += moveDir * (swingFactor * 50)
+	local releaseFactor = swingFactor * loopSpeed
+	if experimental and loopSpeed > 1 then
+		rootPart.AssemblyLinearVelocity += (moveDir + rootPart.CFrame.LookVector * 0.45) * (releaseFactor * 45)
+	else
+		rootPart.AssemblyLinearVelocity += moveDir * (releaseFactor * 50)
+	end
+	character:SetAttribute(
+		"Momentum",
+		(character:GetAttribute("Momentum") or 0)
+			+ ParkourMovementModel.swingMomentumReward(releaseFactor)
+			* (if experimental and loopSpeed > 1 then 4 / 3 else 1)
+			* (character:GetAttribute("MomentumMultiplier") or 1)
+	)
 
 	character:SetAttribute("Swinging", nil)
+	AerialInterface.swingingBar = nil
+	AerialInterface.swingReleaseRequested = false
+	AerialInterface.swingInputHeld = false
+	if experimental then swingAnimation:Stop(0.1) end
 
-	swingPart.CanCollide = originalCollide
-	if swingPart.Parent:GetAttribute("SwingBar") then swingPart.Parent.CanCollide = originalCollide end
+	task.delay(0.12, releaseSwingCollisions)
 end

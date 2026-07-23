@@ -9,6 +9,7 @@ local DebugFunctions = require(ReplicatedStorage.Modules.Debug.DebugFunctions)
 local MovementInterface = require(ReplicatedStorage.Modules.Character.Movement.MovementInterface)
 local Net = require(ReplicatedStorage.Packages.Net)
 local PlaySound = require(ReplicatedStorage.Modules.FX.PlaySound)
+local ParkourMovementModel = require(ReplicatedStorage.Modules.Character.Parkour.ParkourMovementModel)
 local RollInterface = require(ReplicatedStorage.Modules.Character.Parkour.Landing.RollInterface)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInterface)
@@ -28,15 +29,14 @@ local rollIndex = 0
 
 local function roll(character, ms)
 	if CooldownManager.getCooldown(localPlayer, "Roll") then return end
-	CooldownManager.modifyCooldown(localPlayer, "Roll", true, 0.05)
+	CooldownManager.modifyCooldown(localPlayer, "Roll", true, ParkourMovementModel.cooldowns.roll)
 
 	local humanoid = character.Humanoid
 	local rootPart = character.HumanoidRootPart
 
-	local seconds = ms / 1000
-	local perfect = seconds < 0.1
-
-	local speedMult = perfect and (1.3 + ((0.1 - seconds) * 3.5) ^ 0.85) or 1.3
+	local profile = ParkourMovementModel.rollProfile(ms)
+	local perfect = profile.perfect
+	local speedMult = profile.speedMultiplier
 
 	if not character:GetAttribute("Rolling") then previousWalkSpeed = humanoid.WalkSpeed end
 
@@ -76,13 +76,13 @@ local function roll(character, ms)
 		PlaySoundRE:FireServer("PerfectRoll", rootPart, ms)
 	end
 
-	task.delay(0.15, function()
+	task.delay(profile.jumpBoostDelay, function()
 		if currentRollIndex ~= rollIndex then return end
 
 		humanoid.JumpPower *= 1.3
 		MovementInterface.LockMoveVector = false
 
-		task.delay(perfect and 0.2 or 0.35, function()
+		task.delay(profile.boostWindow, function()
 			if currentRollIndex ~= rollIndex then return end
 
 			character:SetAttribute("Rolling", false)
@@ -106,9 +106,9 @@ local function setupConnections(character)
 
 			local seconds = RollInterface.lastPressed and os.clock() - RollInterface.lastPressed
 
-			if ALVelocityY > -40 then return end
+			if ALVelocityY > ParkourMovementModel.rollRequiredVelocity then return end
 
-			if seconds and seconds < 0.7 then
+			if seconds and seconds < ParkourMovementModel.rollInputWindow then
 				roll(character, seconds * 1000)
 			else
 				PlaySound("Land", rootPart, ALVelocityY)

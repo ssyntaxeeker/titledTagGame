@@ -18,14 +18,53 @@ local SpeedDisplayUI = Assets.UI.SpeedDisplayUI:Clone()
 SpeedDisplayUI.Parent = playerGui
 
 local DebugFunctions = {}
-local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+local ENTER_OFFSET = UDim2.fromOffset(0, 6)
+local EXIT_OFFSET = UDim2.fromOffset(0, -4)
+local ENTER_TWEEN_INFO = TweenInfo.new(0.24, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local EXIT_TWEEN_INFO = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+local LAYOUT_TWEEN_INFO = TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
-local function fadeAndDestroy(label, delayTime)
-	TweenService:Create(label, tweenInfo, { TextTransparency = 1 }):Play()
-	if label:FindFirstChild("UIStroke") then TweenService:Create(label.UIStroke, tweenInfo, { Transparency = 1 }):Play() end
+local function fadeAndDestroy(printFrame)
+	if printFrame:GetAttribute("Fading") then return end
+	printFrame:SetAttribute("Fading", true)
 
-	task.delay(delayTime, function()
-		if label.Parent then label:Destroy() end
+	local textLabel = printFrame:FindFirstChild("TextLabel")
+	assert(textLabel and textLabel:IsA("TextLabel"), "[DebugFunctions.fadeAndDestroy] print has no TextLabel")
+	local printList = printFrame.Parent
+	local hasOtherPrint = false
+	if printList then
+		for _, sibling in printList:GetChildren() do
+			if sibling:IsA("Frame") and sibling ~= printFrame and sibling.Name == "Print" then
+				hasOtherPrint = true
+				break
+			end
+		end
+	end
+	if hasOtherPrint then
+		local currentSize = printFrame.Size
+		local automaticSize = printFrame.AutomaticSize
+		if automaticSize == Enum.AutomaticSize.Y or automaticSize == Enum.AutomaticSize.XY then
+			printFrame.AutomaticSize = Enum.AutomaticSize.None
+			printFrame.Size = UDim2.new(currentSize.X.Scale, currentSize.X.Offset, 0, printFrame.AbsoluteSize.Y)
+			currentSize = printFrame.Size
+		end
+		printFrame.ClipsDescendants = true
+		TweenService:Create(printFrame, LAYOUT_TWEEN_INFO, {
+			Size = UDim2.new(currentSize.X.Scale, currentSize.X.Offset, 0, 0),
+		}):Play()
+	end
+
+	local fadeTween = TweenService:Create(textLabel, EXIT_TWEEN_INFO, {
+		Position = textLabel.Position + EXIT_OFFSET,
+		TextTransparency = 1,
+		TextStrokeTransparency = 1,
+	})
+	local stroke = textLabel:FindFirstChildOfClass("UIStroke")
+	if stroke then TweenService:Create(stroke, EXIT_TWEEN_INFO, { Transparency = 1 }):Play() end
+	fadeTween:Play()
+
+	task.delay(EXIT_TWEEN_INFO.Time, function()
+		if printFrame.Parent then printFrame:Destroy() end
 	end)
 end
 
@@ -34,23 +73,44 @@ function DebugFunctions.Print(message, color)
 
 	local printList = DebugUI.PrintList
 	local newPrint = printList.Template:Clone()
+	assert(newPrint:IsA("Frame"), "[DebugFunctions.Print] PrintList.Template must be a Frame")
+	local textLabel = newPrint:FindFirstChild("TextLabel")
+	assert(textLabel and textLabel:IsA("TextLabel"), "[DebugFunctions.Print] PrintList.Template has no TextLabel")
+	local restingPosition = textLabel.Position
+	local restingTextTransparency = textLabel.TextTransparency
+	local restingStrokeTransparency = textLabel.TextStrokeTransparency
+	local stroke = textLabel:FindFirstChildOfClass("UIStroke")
+	local restingUIStrokeTransparency = if stroke then stroke.Transparency else nil
 
-	newPrint.Text, newPrint.Name, newPrint.Visible, newPrint.LayoutOrder = message, "Print", true, 0
+	textLabel.Text = message
+	newPrint.Name, newPrint.Visible, newPrint.LayoutOrder = "Print", true, 0
 
 	if color == "Rainbow" then
-		Assets.UI.Extra.RainbowBright:Clone().Parent = newPrint
+		Assets.UI.Extra.RainbowBright:Clone().Parent = textLabel
 	elseif typeof(color) == "Color3" then
-		newPrint.TextColor3 = color
+		textLabel.TextColor3 = color
 	end
 
+	textLabel.Position = restingPosition + ENTER_OFFSET
+	textLabel.TextTransparency = 1
+	textLabel.TextStrokeTransparency = 1
+	if stroke then stroke.Transparency = 1 end
 	newPrint.Parent = printList
+	TweenService:Create(textLabel, ENTER_TWEEN_INFO, {
+		Position = restingPosition,
+		TextTransparency = restingTextTransparency,
+		TextStrokeTransparency = restingStrokeTransparency,
+	}):Play()
+	if stroke and restingUIStrokeTransparency then
+		TweenService:Create(stroke, ENTER_TWEEN_INFO, { Transparency = restingUIStrokeTransparency }):Play()
+	end
 
 	for _, child in printList:GetChildren() do
-		if child:IsA("TextLabel") and child ~= newPrint and child.Name ~= "Template" then fadeAndDestroy(child, 0.5) end
+		if child:IsA("Frame") and child ~= newPrint and child.Name == "Print" then fadeAndDestroy(child) end
 	end
 
 	task.delay(2, function()
-		if newPrint.Parent then fadeAndDestroy(newPrint, 0.5) end
+		if newPrint.Parent then fadeAndDestroy(newPrint) end
 	end)
 end
 

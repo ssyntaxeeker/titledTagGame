@@ -31,5 +31,5 @@ return TextChatService.TextChatCommands.ChangeMode.Triggered:Connect(function(so
 		end
 	end
 
-	RoundManager.SetMode(mode)
+	if mode then RoundManager.SetMode(mode) end
 end)

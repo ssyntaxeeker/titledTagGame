@@ -41,11 +41,22 @@ module.PlayerDataTemplate = {
 			vaultAndSwing = "Enum.KeyCode.Space",
 			slideAndCrouch = "Enum.KeyCode.C",
 			roll = "Enum.KeyCode.C",
+			walk = "Enum.KeyCode.LeftShift",
 			toggleSettings = "Enum.KeyCode.M",
 			toggleMatchmaking = "Enum.KeyCode.N",
 		},
 		mobile = {
 			toggleLeaderboard = false,
+		},
+	},
+	BotTrainingData = {
+		tagger = {
+			versions = {},
+			activeVersionId = nil,
+		},
+		runner = {
+			versions = {},
+			activeVersionId = nil,
 		},
 	},
 }

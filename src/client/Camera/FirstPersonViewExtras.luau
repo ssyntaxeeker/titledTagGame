@@ -10,7 +10,6 @@ local SettingsInterface = require(ReplicatedStorage.Modules.Settings.SettingsInt
 local localPlayer = Players.LocalPlayer
 
 local viewableParts = { "Left Arm", "Right Arm", "Left Leg", "Right Leg" }
-local CollideParts = { "Torso", "Left Leg", "Right Leg" }
 
 local renderStepped
 
@@ -41,17 +40,6 @@ local function ThirdPerson(character)
 	end
 end
 
-local function setCanCollide(character)
-	for _, part in character:GetDescendants() do
-		if not part:IsA("BasePart") then continue end
-		if not table.find(CollideParts, part.Name) then
-			part.CanCollide = false
-		else
-			part.CanCollide = true
-		end
-	end
-end
-
 local function setMouseIcon()
 	UserInputService.MouseIcon = "rbxassetid://15722065980"
 end
@@ -62,9 +50,8 @@ local function initCharacter(character)
 	local humanoid = character:WaitForChild("Humanoid")
 
 	setMouseIcon()
-	setCanCollide(character)
 
-	humanoid.HipHeight = -0.1
+	--humanoid.HipHeight = -0.1
 
 	humanoid.Died:Connect(function()
 		if not renderStepped then return end

@@ -2,6 +2,10 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
 
+local ChatConfig = require(ReplicatedStorage.Shared.Configs.ChatConfig)
+
+if not ChatConfig.enabled then return 0 end
+
 local ChatUIInterface = require(ReplicatedStorage.Modules.Chat.UI.ChatUIInterface)
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 

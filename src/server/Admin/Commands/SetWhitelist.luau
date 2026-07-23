@@ -17,8 +17,8 @@ return TextChatService.TextChatCommands.SetWhitelist.Triggered:Connect(function(
 
 	if not CommandsUtils.CheckForPermission(Players:GetPlayerByUserId(source.UserId), canUseCommand) then return end
 
-	PlayerCheckerFunctions.Perms.whitelist = parameters[2] == "true" and 1 or 0
-	print(`Set whitelist to {parameters[2] == "true" and 1 or 0}`)
+	PlayerCheckerFunctions.Perms.whitelist = parameters[1] == "true" and 1 or 0
+	print(`Set whitelist to {parameters[1] == "true" and 1 or 0}`)
 
 	if PlayerCheckerFunctions.Perms.whitelist == 1 then
 		for _, player in Players:GetPlayers() do

@@ -12,9 +12,7 @@ local Schedules = require(ReplicatedStorage.Shared.Schedules)
 local PlayerProfileStore = ProfileStore.New("RELEASE_1", Profiles.PlayerDataTemplate)
 
 local function forfeitRanked(forfeitingPlayer)
-	for _, score in MatchmakingInterface.scores do
-		if score >= 4 then return end
-	end
+	if MatchmakingInterface.ratingAwarded then return end
 
 	local players = Players:GetPlayers()
 
@@ -27,8 +25,10 @@ local function forfeitRanked(forfeitingPlayer)
 
 	local randomOpponent = opponents[math.random(1, #opponents)]
 
-	MatchmakingFunctions.GiveElo(forfeitingPlayer, randomOpponent, 0)
-	MatchmakingFunctions.GiveElo(randomOpponent, forfeitingPlayer, 1)
+	MatchmakingFunctions.GiveHeadToHeadElo(forfeitingPlayer, randomOpponent, 0)
+	MatchmakingInterface.ratingAwarded = true
+	MatchmakingInterface.rankedAwardsEnabled = false
+	ReplicatedStorage:SetAttribute("RankedMatchStatus", "Forfeit")
 
 	TeleportService:TeleportAsync(game.PlaceId, Players:GetPlayers())
 end
@@ -59,7 +59,9 @@ local function init()
 		local profile = Profiles.ReturnProfile(player)
 
 		if profile ~= nil then
-			if ReplicatedStorage:GetAttribute("Ranked") then forfeitRanked(player) end
+			if ReplicatedStorage:GetAttribute("Ranked") and MatchmakingInterface.rankedAwardsEnabled then
+				forfeitRanked(player)
+			end
 
 			profile:EndSession()
 		end

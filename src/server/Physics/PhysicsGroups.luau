@@ -6,10 +6,12 @@ local Schedules = require(ReplicatedStorage.Shared.Schedules)
 local function createGroups()
 	PhysicsService:RegisterCollisionGroup("DeadPlayers")
 	PhysicsService:RegisterCollisionGroup("Players")
+	PhysicsService:RegisterCollisionGroup("Bots")
 
 	PhysicsService:CollisionGroupSetCollidable("DeadPlayers", "Players", false)
 	PhysicsService:CollisionGroupSetCollidable("DeadPlayers", "DeadPlayers", false)
 	PhysicsService:CollisionGroupSetCollidable("DeadPlayers", "Default", true)
+	PhysicsService:CollisionGroupSetCollidable("Bots", "Bots", false)
 end
 
 return Schedules.Boot.job(createGroups)

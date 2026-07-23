@@ -6,7 +6,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local MovementInterface = require(ReplicatedStorage.Modules.Character.Movement.MovementInterface)
-local Slide = require(ReplicatedStorage.Modules.Character.Parkour.Landing.Slide)
+local MovementMotor = require(ReplicatedStorage.Modules.Character.Movement.MovementMotor)
 
 local localPlayer = Players.LocalPlayer
 local ZERO_VECTOR3 = Vector3.new()
@@ -117,31 +117,14 @@ end
 
 local renderSteppedConnection
 
-local function onRenderStepped()
+local function onRenderStepped(dt)
 	local character = localPlayer.Character
 	if not character or not KeyboardController.Enabled then return end
 
-	local humanoid = character:FindFirstChild("Humanoid")
-	local root = character:FindFirstChild("HumanoidRootPart")
-	if not humanoid or not root then return end
-
-	local move = MovementInterface.MoveVector
-
-	if humanoid.FloorMaterial == Enum.Material.Air and character:GetAttribute("Sliding") then Slide.Stop() end
-
-	if move ~= ZERO_VECTOR3 then
-		if MovementInterface.LockMoveVector then
-			localPlayer:Move(MovementInterface.LockedMoveDirection, false)
-		else
-			local moveDir = (root.CFrame.RightVector * move.X) + (root.CFrame.LookVector * move.Z)
-
-			localPlayer:Move(moveDir, false)
-		end
-	else
-		localPlayer:Move(ZERO_VECTOR3, false)
-	end
-
-	humanoid.Jump = MovementInterface.IsJumping
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid or not character:FindFirstChild("HumanoidRootPart") then return end
+	MovementMotor.step(character, dt)
+	humanoid.Jump = MovementInterface.IsJumping and character:GetAttribute("Walljumping") ~= true
 end
 
 local function connectFocusEvents()

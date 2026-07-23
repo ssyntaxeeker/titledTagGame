@@ -42,7 +42,7 @@ end
 
 function TypeBoxFunctions.SendMessage()
 	local typeBox = getTypeBox()
-	local text = typeBox.Text
+	local text: string = typeBox.Text
 
 	if text == "" then return end
 

@@ -6,6 +6,8 @@ return {
 	queuedPlayers = {},
 	scores = {},
 	runnerTimes = {},
+	rankedAwardsEnabled = false,
+	ratingAwarded = false,
 
 	killedSignal = Signal.new(),
 }

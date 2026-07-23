@@ -3,30 +3,32 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Schedules = require(ReplicatedStorage.Shared.Schedules)
 
-local function setBodyTransparency(character, transparency)
-	local player = Players:GetPlayerFromCharacter(character)
-
-	task.spawn(function()
-		repeat
-			task.wait(0.1)
-		until player:HasAppearanceLoaded()
-
-		for _, part in character:GetDescendants() do
-			if part:IsA("BasePart") and part.Transparency ~= 1 then part.Transparency = transparency end
-		end
-	end)
+local function updatePart(character, part)
+	if not part:IsA("BasePart") then return end
+	local originalTransparency = part:GetAttribute("DeadBodyOriginalTransparency")
+	if typeof(originalTransparency) ~= "number" then
+		originalTransparency = part.Transparency
+		part:SetAttribute("DeadBodyOriginalTransparency", originalTransparency)
+	end
+	part.Transparency = if character:GetAttribute("Role") == "Dead"
+		then math.max(originalTransparency, 0.6)
+		else originalTransparency
 end
 
 local function checkCharacterRole(character)
-	if character:GetAttribute("Role") == "Dead" then
-		setBodyTransparency(character, 0.6)
-	else
-		setBodyTransparency(character, 0)
+	for _, part in character:GetDescendants() do
+		updatePart(character, part)
 	end
 end
 
 local function initPlayer(player)
 	local function onCharacterAdded(character)
+		character:GetAttributeChangedSignal("Role"):Connect(function()
+			checkCharacterRole(character)
+		end)
+		character.DescendantAdded:Connect(function(descendant)
+			updatePart(character, descendant)
+		end)
 		checkCharacterRole(character)
 	end
 

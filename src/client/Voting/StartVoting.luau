@@ -6,11 +6,24 @@ local VotingUIFunctions = require(ReplicatedStorage.Modules.Voting.VotingUIFunct
 
 local StartClientVotingRE = Net:RemoteEvent("StartClientVoting")
 
-StartClientVotingRE.OnClientEvent:Connect(function(items)
+StartClientVotingRE.OnClientEvent:Connect(function(items, roundId, voteType)
+	VotingUIFunctions.BeginSession(roundId, voteType)
+	VotingUIFunctions.SetActive(true)
 	local frames = {}
 
 	for _, mode in items do
-		local modeConfig = require(ReplicatedStorage.Shared.Configs.Modes[mode])
+		local modeConfig
+		if voteType == "map" then
+			local mapAsset = ReplicatedStorage.Assets.Maps:FindFirstChild(mode)
+			local mapGlow = if mapAsset then mapAsset:GetAttribute("UIGlow") else nil
+			modeConfig = {
+				UIImage = if mapAsset then mapAsset:GetAttribute("UIImage") or "" else "",
+				Name = mode,
+				UIGlow = if typeof(mapGlow) == "Color3" then mapGlow else Color3.fromRGB(180, 180, 180),
+			}
+		else
+			modeConfig = require(ReplicatedStorage.Shared.Configs.Modes[mode])
+		end
 
 		table.insert(
 			frames,
@@ -19,9 +32,9 @@ StartClientVotingRE.OnClientEvent:Connect(function(items)
 	end
 
 	for _, frame in frames do
+		if not VotingUIFunctions.IsSession(roundId) then return end
 		VotingUIFunctions.HookFrame(frame)
 		VotingUIFunctions.ShowFrame(frame)
-		task.wait(0.2)
 	end
 end)
 

@@ -8,10 +8,9 @@ local Net = require(ReplicatedStorage.Packages.Net)
 
 local UpdateLeadRunnerRE = Net:RemoteEvent("UpdateLeadRunner")
 
-local leadingRunner = nil
-
 ClockInterface.updateRunnerTimesSignal:Connect(function()
-	for _, player in Players:GetPlayers() do
+	local players = Players:GetPlayers()
+	for _, player in players do
 		if player.Character and player.Character:GetAttribute("Role") == "Runner" then
 			MatchmakingInterface.runnerTimes[player] = (MatchmakingInterface.runnerTimes[player] or 0) + 1
 		end
@@ -20,17 +19,22 @@ ClockInterface.updateRunnerTimesSignal:Connect(function()
 	local topRunner = nil
 	local topTime = -math.huge
 
-	for runner, time in MatchmakingInterface.runnerTimes do
+	for _, runner in players do
+		local time = MatchmakingInterface.runnerTimes[runner] or 0
 		if time > topTime then
 			topTime = time
 			topRunner = runner
 		end
 	end
 
-	if topRunner == leadingRunner then return end
-
-	leadingRunner = topRunner
-	UpdateLeadRunnerRE:FireAllClients(leadingRunner.Name)
+	if not topRunner then return end
+	local secondHighestTime = 0
+	for _, player in players do
+		if player ~= topRunner then
+			secondHighestTime = math.max(secondHighestTime, MatchmakingInterface.runnerTimes[player] or 0)
+		end
+	end
+	UpdateLeadRunnerRE:FireAllClients(topRunner.Name, topTime - secondHighestTime)
 end)
 
 return 0

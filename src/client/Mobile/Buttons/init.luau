@@ -6,6 +6,7 @@ function Buttons.Register(buttonName, callbacks)
 	buttonsList[buttonName] = {}
 	buttonsList[buttonName].OnBegan = callbacks.OnBegan or nil
 	buttonsList[buttonName].OnEnded = callbacks.OnEnded or nil
+	buttonsList[buttonName].OnDisabled = callbacks.OnDisabled or nil
 
 	return 0
 end

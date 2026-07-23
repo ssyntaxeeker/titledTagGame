@@ -7,7 +7,7 @@ return {
 	onJoinRole = "Tagger",
 	winRole = "Runner",
 
-	respawnAsRole = "Tagger",
+	respawnAsRole = "Dead",
 
 	regiveRoleOnCharacterRemoved = "Runner",
 	allowedRolesToGetRegivenRole = { "Tagger" },

@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CooldownManager = require(ReplicatedStorage.Vendor.CooldownManager)
 local MatchInterface = require(ReplicatedStorage.Modules.Matchmaking.MatchInterface)
+local MouseVisibilityService = require(ReplicatedStorage.Modules.Cursor.MouseVisibilityService)
 local Net = require(ReplicatedStorage.Packages.Net)
 
 local Assets = ReplicatedStorage.Assets
@@ -56,6 +57,7 @@ end
 
 function MatchUIFunctions.ToggleUI(bool)
 	MatchUI.Full.Visible = bool
+	MouseVisibilityService.setVisible(MatchUI, bool)
 
 	MatchUIFunctions.UpdateUI()
 end
